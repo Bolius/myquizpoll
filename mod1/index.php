@@ -164,7 +164,7 @@ class  tx_myquizpoll_module1 extends t3lib_SCbase {
 
 				// Draw the header.
 			//$link = htmlspecialchars(t3lib_div::linkThisScript());
-			$link = $_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING'];
+			$link = $_SERVER['PHP_SELF'].'?'.htmlspecialchars($_SERVER['QUERY_STRING']);
 			$this->doc = t3lib_div::makeInstance('mediumDoc');
 			$this->doc->backPath = $BACK_PATH;
 			$this->doc->form='<form action="'.$link.'" method="post" enctype="multipart/form-data" name="myquiz">';
@@ -267,9 +267,8 @@ class  tx_myquizpoll_module1 extends t3lib_SCbase {
 		$columns['tx_myquizpoll_voting']['qno'] = 'question_id';
 		$columns['tx_myquizpoll_voting']['ano'] = 'answer_no';
 		$columns['tx_myquizpoll_voting']['fno'] = ',foreign_val';
-		$table = t3lib_div::_GP('table');
-		if (!$table) $table = 'tx_myquizpoll_result';
-		
+		$table = (t3lib_div::_GP('table')=='tx_myquizpoll_voting') ? 'tx_myquizpoll_voting' : 'tx_myquizpoll_result';
+				
 		if (t3lib_div::_GP('delall')==1) {	// delete all rows
 			$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('1',
 				$table,
@@ -279,16 +278,16 @@ class  tx_myquizpoll_module1 extends t3lib_SCbase {
 				$GLOBALS['TYPO3_DB']->exec_DELETEquery('tx_myquizpoll_relation', "PID=$id AND sys_language_uid=$lid");
 			$GLOBALS['TYPO3_DB']->exec_DELETEquery($table, "PID=$id AND sys_language_uid=$lid");
 			$content .= '<p><strong>'.$LANG->getLL('action').": $rows ".$LANG->getLL('deleted').'</strong></p><br /><br />';		
-		} else if (t3lib_div::_GP('del_some') && is_array(t3lib_div::_GP('delit'))) {	// deleting rows... 
+		} else if (t3lib_div::_GP('del_some') && is_array(t3lib_div::_GP('delit')) && (t3lib_div::_GP('delit') === array_filter(t3lib_div::_GP('delit'),'is_numeric'))) {	// deleting rows... 
 			$delArray = t3lib_div::_GP('delit');
-			$delString = addslashes(implode(",", $delArray));
+			$delString = implode(",", $delArray);
 			if ($table=='tx_myquizpoll_result')
 				$GLOBALS['TYPO3_DB']->exec_DELETEquery('tx_myquizpoll_relation', "PID=$id AND user_id IN ($delString)");
 			$GLOBALS['TYPO3_DB']->exec_DELETEquery($table, "PID=$id AND uid IN ($delString)");
 			$content .= '<p><strong>'.$LANG->getLL('action').': '.count($delArray).' '.$LANG->getLL('deleted').'</strong></p><br /><br />';
-		} else if ((t3lib_div::_GP('hide_some') || t3lib_div::_GP('release_some')) && is_array(t3lib_div::_GP('delit'))) {	// hiding/releasing rows... 
+		} else if ((t3lib_div::_GP('hide_some') || t3lib_div::_GP('release_some')) && is_array(t3lib_div::_GP('delit')) && (t3lib_div::_GP('delit') === array_filter(t3lib_div::_GP('delit'),'is_numeric'))) {	// hiding/releasing rows... 
 			$eArray = t3lib_div::_GP('delit');
-			$eString = addslashes(implode(",", $eArray));
+			$eString = implode(",", $eArray);
 			$hide = (t3lib_div::_GP('hide_some')) ? 1 : 0;
 			$uArray = array('hidden' => $hide);
 			if ($table=='tx_myquizpoll_result')
@@ -314,7 +313,7 @@ class  tx_myquizpoll_module1 extends t3lib_SCbase {
 					}
 					$userHash[$qno]['textinput'] = $row['textinput'];
 					$userHash[$qno]['points'] = $row['points'];
-					$questions.=",$qno";
+					$questions.=','.intval($qno);
 				}
 				$questions=substr($questions,1);
 				
@@ -475,6 +474,8 @@ class  tx_myquizpoll_module1 extends t3lib_SCbase {
 		$link = htmlspecialchars(t3lib_div::linkThisScript()); // . "?M=tools_txextensionlistM1&id=$id";
 		if (t3lib_div::_GP('sortBy')) {
 			$sortBy = t3lib_div::_GP('sortBy');
+			if (!(($sortBy=='crdate DESC') || ($sortBy=='crdate ASC') || ($sortBy=='name DESC') || ($sortBy=='name ASC') || ($sortBy=='p_or_a DESC') || ($sortBy=='p_or_a ASC')))
+				$sortBy = 'crdate DESC';
 		} else {
 			$sortBy = 'crdate DESC';
 		}
@@ -484,8 +485,13 @@ class  tx_myquizpoll_module1 extends t3lib_SCbase {
 			$limitTo = $ep;
 		}
 		$table = 'tx_myquizpoll_result';
-		$foreign_table = t3lib_div::_GP('foreign_table');
-		$foreign_title = t3lib_div::_GP('foreign_title');
+		if ($GLOBALS['BE_USER']->user['admin']) {	// nur Admins haben Zugriff auf Fremd-Tabellen
+			$foreign_table = addslashes(t3lib_div::_GP('foreign_table'));
+			$foreign_title = addslashes(t3lib_div::_GP('foreign_title'));
+		} else {
+			$foreign_table = '';
+			$foreign_title = '';
+		}
 		$foreign_vals = '';
 		$foreign_array = array();
 		
@@ -764,7 +770,8 @@ class  tx_myquizpoll_module1 extends t3lib_SCbase {
 				}
 			break;
 			case 7:
-				$head = $LANG->getLL('function7');
+			  $head = $LANG->getLL('function7');
+			  if ($GLOBALS['BE_USER']->user['admin']) {
 				$once = t3lib_div::_GP('once');
 				$once_yes = ($once) ? ' checked' : '';
 				$once_no = (!$once) ? ' checked' : '';
@@ -1023,9 +1030,11 @@ class  tx_myquizpoll_module1 extends t3lib_SCbase {
 					}
 					$content .= "<br /><br />\n".'<textarea name="temp" cols="100" rows="25">'."\n".$output."</textarea>\n<br />\n";
 				}
+			  } else $content .= '<div align="center"><strong>Only for Admins!!!</strong></div><br />';
 			break;
 			case 8:
-				$head = $LANG->getLL('function8');
+			  $head = $LANG->getLL('function8');
+			  if ($GLOBALS['BE_USER']->user['admin']) {
 				$content .= '<div align="center"><strong>CSV-Import</strong></div><br />'."\n";
 				$content .= '<p>'.$LANG->getLL('imp_delimiter').': <input name="feldtrenner" type="text" value=";" size="5" /> &nbsp; ';
 				$content .= $LANG->getLL('imp_enclosure').': <input name="texttrenner" type="text" value="" size="5" /></p><br />';
@@ -1044,9 +1053,11 @@ class  tx_myquizpoll_module1 extends t3lib_SCbase {
 				$content .= "\n</pre><br />\n";
 				$content .= '<input type="file" name="uploadfile" size="40" /><br /><br />';
 				$content .= '<input type="submit" name="import" value="Import" />';
+			  } else $content .= '<div align="center"><strong>Only for Admins!!!</strong></div><br />';
 			break;
 			case 9:
-				$head = $LANG->getLL('function9');
+			  $head = $LANG->getLL('function9');
+			  if ($GLOBALS['BE_USER']->user['admin']) {
 				$content .= '<div align="center"><strong>'.$LANG->getLL('mystyles')."</strong></div><br />\n";
 				
 				if (file_exists($filename_new))
@@ -1063,6 +1074,7 @@ class  tx_myquizpoll_module1 extends t3lib_SCbase {
 					fclose ($datei);
 				}
 				$content .= '<input type="submit" name="save" value="'.$LANG->getLL('save_styles').'" />';
+			  } else $content .= '<div align="center"><strong>Only for Admins!!!</strong></div><br />';
 			break;
 		}
 		

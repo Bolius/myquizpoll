@@ -88,7 +88,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 		// global $TSFE;
 		$this->lang = intval($GLOBALS['TSFE']->config['config']['sys_language_uid']); 		
 		$this->copyFlex();			// copy Felxform-Variables to this->conf
-		$this->tableAnswers = ($this->conf['tableAnswers']) ? addslashes($this->conf['tableAnswers']) : 'tx_myquizpoll_result';
+		$this->tableAnswers = ($this->conf['tableAnswers']=='tx_myquizpoll_voting') ? 'tx_myquizpoll_voting' : 'tx_myquizpoll_result';
 		
 		if ( $this->conf['enableCaptcha'] && t3lib_extMgm::isLoaded('sr_freecap') ) {		// load Captcha: Anti-Spam-Tool ??? only if enabled (16.10.2009)
 			require_once(t3lib_extMgm::extPath('sr_freecap').'pi2/class.tx_srfreecap_pi2.php');
@@ -99,12 +99,12 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 		if( !($this->cObj->data['pages'] == '') ) {		// PID (eine oder mehrere)
 			$thePID = $this->cObj->data['pages'];
 		} elseif( !($this->conf['sysPID'] == '') ) {
-			$thePID = addslashes($this->conf['sysPID']);
+			$thePID = preg_replace('/[^0-9,]/','',$this->conf['sysPID']);
 		} else {
 			$thePID = $GLOBALS["TSFE"]->id;
 		}
 		$resPID = ($this->conf['resultsPID']) ? intval($this->conf['resultsPID']) : $thePID;
-		$resPIDs = addslashes($resPID);	// für den Highscore werden ggf. alle PIDs gebraucht
+		$resPIDs = preg_replace('/[^0-9,]/','',$resPID);	// für den Highscore werden ggf. alle PIDs gebraucht
 		if (strstr($resPID, ',')) {	// wenn mehrere Ordner ausgewählt, nimm den ersten
 			$tmp = explode(",", $resPID);
 			$resPID = intval(trim($tmp[0]));
@@ -128,13 +128,13 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 		  else
 			$quizData = t3lib_div::_GET($this->prefixId);
 		  //$quizData = t3lib_div::slashArray(t3lib_div::GPvar($this->prefixId),"strip"); // deprecated
-		  if ($quizData["cmd"]=='') {
-		    $quizData["cmd"] = $this->conf['CMD'];
-		  } elseif ($quizData["cmd"]=='allanswers') {	// or $quizData["cmd"]=='score' or $quizData["cmd"]=='list'
-		    $quizData["cmd"] = '';						// for security reasons we want that users can´t see everything
+		  if ($quizData['cmd']=='') {
+		    $quizData['cmd'] = $this->conf['CMD'];
+		  } elseif ($quizData['cmd']=='allanswers') {	// or $quizData['cmd']=='score' or $quizData['cmd']=='list'
+		    $quizData['cmd'] = '';						// for security reasons we want that users can´t see everything
 		  }
 		} else {
-		  $quizData["cmd"] = $this->conf['CMD'];		// get the CMD from the backend
+		  $quizData['cmd'] = $this->conf['CMD'];		// get the CMD from the backend
 		}
 		if ($quizData["name"]) $quizData["name"] = htmlspecialchars($quizData["name"]);
 		if ($quizData["email"]) $quizData["email"] = htmlspecialchars($quizData["email"]);
@@ -143,7 +143,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 		// Zurück navigieren?
 		$back=intval($quizData["back"]);
 		$back_hit=intval($quizData["back-hit"]);
-		if ($back_hit) $quizData["cmd"]='';
+		if ($back_hit) $quizData['cmd']='';
 		$seite=0;
 		if ($this->tableAnswers=='tx_myquizpoll_voting') $this->conf['allowBack']=0;
 		
@@ -214,7 +214,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 			$markerArray["###MINUTES###"] = $this->pi_getLL('minutes','minutes');
 		}
 		// Link to the Highscore list
-  		$urlParameters = array("tx_myquizpoll_pi1[cmd]" => "score", "tx_myquizpoll_pi1[qtuid]" => $quizData["qtuid"], "no_cache" => "1");
+  		$urlParameters = array("tx_myquizpoll_pi1[cmd]" => "score", "tx_myquizpoll_pi1[qtuid]" => intval($quizData['qtuid']), "no_cache" => "1");
 		$markerArray["###HIGHSCORE_URL###"] = $this->pi_linkToPage($this->pi_getLL('highscore_url','highscore_url'), $listPID, $target = '', $urlParameters);
 		
 		// Jokers and Details
@@ -268,11 +268,11 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 		}
 		
 		// set some session-variables
-		if ((!$this->conf['isPoll']) && ($quizData["cmd"]=='') && (!$quizData["qtuid"]))
+		if ((!$this->conf['isPoll']) && ($quizData['cmd']=='') && (!$quizData['qtuid']))
 			$this->helperObj->setQuestionsVars();
 		
 		// get the startPID of a solved quiz
-		if (!$startPID) $startPID = $this->helperObj->getStartUid($quizData["qtuid"]);
+		if (!$startPID) $startPID = $this->helperObj->getStartUid($quizData['qtuid']);
 		$quiz_name = $this->conf['quizName'];
 		if (!$quiz_name) {
 			$quiz_name = $this->helperObj->getPageTitle($startPID);
@@ -299,7 +299,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 		//}
 		
 		// check, if logged in
-		if ( $this->conf['loggedInCheck'] && ($quizData["cmd"]!='score' && $quizData["cmd"]!='list') && !$GLOBALS['TSFE']->loginUser ) {
+		if ( $this->conf['loggedInCheck'] && ($quizData['cmd']!='score' && $quizData['cmd']!='list') && !$GLOBALS['TSFE']->loginUser ) {
 			$no_rights = 1;					// noname user is (b)locked now
 			$markerArray["###NOT_LOGGEDIN###"] = $this->pi_getLL('not_loggedin','not_loggedin');
 			$template = $this->cObj->getSubpart($this->templateCode, "###TEMPLATE_NOT_LOGGEDIN###");
@@ -308,10 +308,10 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 				t3lib_div::devLog('Loggin check failes!', $this->extKey, 0);
 		}
 		
-		$quiz_taker_ip_address = addslashes($this->helperObj->getRealIpAddr());
+		$quiz_taker_ip_address = preg_replace('/[^0-9\.]/', '', $this->helperObj->getRealIpAddr());
 		
 		// check for second entry ( based on the ip-address )
-		if ( $this->conf['doubleEntryCheck'] && ($quizData["cmd"]!='score' && $quizData["cmd"]!='list') && !$quizData["qtuid"] && $no_rights == 0 ) {
+		if ( $this->conf['doubleEntryCheck'] && ($quizData['cmd']!='score' && $quizData['cmd']!='list') && !$quizData['qtuid'] && $no_rights == 0 ) {
 			$res5 = $GLOBALS['TYPO3_DB']->exec_SELECTquery( 'tstamp, uid',
 				$this->tableAnswers,
 				'pid='.$resPID." AND ip='".$quiz_taker_ip_address."' AND sys_language_uid=".$this->lang,
@@ -327,9 +327,9 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 				if ($period < 10000) $period *= 60*60*24;		// days
 				//if ($period==1) $period = 50000;		// approx. a half day is the quiz blocked for the same ip-address
 				if ((time() - $dateOld) < $period) {
-					if ( $this->conf['doubleCheckMode'] || $this->conf["secondPollMode"] ) {
-						$quizData["qtuid"] = $fetchedRow['uid'];
-						$quizData["cmd"]  = 'next';
+					if ( $this->conf['doubleCheckMode'] || $this->conf['secondPollMode'] ) {
+						$quizData['qtuid'] = intval($fetchedRow['uid']);
+						$quizData['cmd']  = 'next';
 						$secondVisit = true;
 					} else {
 						$no_rights = 1;						// user is (b)locked now
@@ -343,11 +343,11 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 				$GLOBALS['TYPO3_DB']->sql_free_result($res5);
 			}
 			if ($this->helperObj->writeDevLog)
-				t3lib_div::devLog('IP check for qtuid='.$quizData["qtuid"], $this->extKey, 0);
+				t3lib_div::devLog('IP check for qtuid='.$quizData['qtuid'], $this->extKey, 0);
 		}
 		
 		// check for second entry ( based on the fe_users-id )
-		if ( $this->conf['loggedInMode'] && ($quizData["cmd"]!='score' && $quizData["cmd"]!='list') && !$quizData["qtuid"] && $GLOBALS['TSFE']->loginUser && $this->tableAnswers=='tx_myquizpoll_result' && $no_rights == 0 ) {
+		if ( $this->conf['loggedInMode'] && ($quizData['cmd']!='score' && $quizData['cmd']!='list') && !$quizData['qtuid'] && $GLOBALS['TSFE']->loginUser && $this->tableAnswers=='tx_myquizpoll_result' && $no_rights == 0 ) {
 			$fe_uid = intval($GLOBALS['TSFE']->fe_user->user['uid']);
 			$res5 = $GLOBALS['TYPO3_DB']->exec_SELECTquery( 'uid, tstamp',
 				$this->tableAnswers,
@@ -359,9 +359,9 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 			$rows = $GLOBALS['TYPO3_DB']->sql_num_rows($res5);
 			if ($rows>0) {							// DB entry found for current user?
 				$fetchedRow = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res5);
-				if ( $this->conf['doubleCheckMode'] || $this->conf["secondPollMode"] ) {
-					$quizData["qtuid"] = $fetchedRow['uid'];
-					$quizData["cmd"]  = 'next';
+				if ( $this->conf['doubleCheckMode'] || $this->conf['secondPollMode'] ) {
+					$quizData['qtuid'] = intval($fetchedRow['uid']);
+					$quizData['cmd']  = 'next';
 					$secondVisit = true;
 				} else {
 					$no_rights = 1;						// user is (b)locked now
@@ -372,11 +372,11 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 				$GLOBALS['TYPO3_DB']->sql_free_result($res5);
 			}
 			if ($this->helperObj->writeDevLog)
-				t3lib_div::devLog('fe_users check for qtuid='.$quizData["qtuid"], $this->extKey, 0);
+				t3lib_div::devLog('fe_users check for qtuid='.$quizData['qtuid'], $this->extKey, 0);
 		}
 		
 		// check if the captcha is OK
-		if ((($quizData["cmd"]  == 'submit' && $this->helperObj->getAskAtQ($quizData["qtuid"])) ||
+		if ((($quizData['cmd']  == 'submit' && $this->helperObj->getAskAtQ($quizData['qtuid'])) ||
 			 ($quizData["fromStart"] && $this->conf['userData.']['askAtStart']) ||
 		     ($quizData["fromFinal"] && $this->conf['userData.']['askAtFinal'])) &&
 			    is_object($this->freeCap) && $this->conf['enableCaptcha'] &&
@@ -386,11 +386,11 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 				break;	// hier kommt man eh nie hin...
 			}
 			if ($quizData["fromFinal"] && $finalPID!=$GLOBALS["TSFE"]->id) {	// Weiterleitung zurueck zur Extra-Endseite
-				$this->redirectUrl($finalPID, array($this->prefixId.'[qtuid]' => $quizData["qtuid"],$this->prefixId.'[cmd]' => 'next',$this->prefixId.'[name]' => $quizData["name"],$this->prefixId.'[email]' => $quizData["email"],$this->prefixId.'[homepage]' => $quizData["homepage"], $this->prefixId.'[captchaError]' => '1'));
+				$this->redirectUrl($finalPID, array($this->prefixId.'[qtuid]' => intval($quizData["qtuid"]),$this->prefixId.'[cmd]' => 'next',$this->prefixId.'[name]' => $quizData["name"],$this->prefixId.'[email]' => $quizData["email"],$this->prefixId.'[homepage]' => $quizData["homepage"], $this->prefixId.'[captchaError]' => '1'));
 				break;	// hier kommt man eh nie hin...
 			}
-			$quizData["cmd"]  = ($quizData["fromStart"]) ? '' : 'next';		// "nochmal" simulieren
-			//$quizData["qtuid"] = '';		// wieso wohl???
+			$quizData['cmd']  = ($quizData["fromStart"]) ? '' : 'next';		// "nochmal" simulieren
+			//$quizData['qtuid'] = '';		// wieso wohl???
 			$markerArray["###CAPTCHA_NOT_OK###"] = $this->pi_getLL('captcha_not_ok','captcha_not_ok');
 			$template = $this->cObj->getSubpart($this->templateCode, "###TEMPLATE_CAPTCHA_NOT_OK###");
 			$markerArrayP["###REF_ERRORS###"] .= $this->cObj->substituteMarkerArray($template, $markerArray);	// instead of $content
@@ -414,29 +414,29 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 		$skipped = '';
 		$cids = '';
 		$fids = '';
-		if ((($this->conf['useCookiesInDays'] && !$quizData["qtuid"]) || 
-			 ($quizData["cmd"]  == 'next') ||
-			 ($quizData["cmd"]  == 'submit' && !$this->conf['isPoll'] && ($this->conf['dontShowPoints']!=1 || $this->conf['quizTimeMinutes']))) && $no_rights == 0 ) {
+		if ((($this->conf['useCookiesInDays'] && !$quizData['qtuid']) || 
+			 ($quizData['cmd']  == 'next') ||
+			 ($quizData['cmd']  == 'submit' && !$this->conf['isPoll'] && ($this->conf['dontShowPoints']!=1 || $this->conf['quizTimeMinutes']))) && $no_rights == 0 ) {
 			 
 			$cookieRead = false;
-			if (!$quizData["qtuid"] && $this->conf['useCookiesInDays']) {   // !($quizData["cmd"]  == 'next' || $quizData["cmd"]  == 'submit')) warum das nur? auskommentiert am 27.12.2009
+			if (!$quizData['qtuid'] && $this->conf['useCookiesInDays']) {   // !($quizData['cmd']  == 'next' || $quizData['cmd']  == 'submit')) warum das nur? auskommentiert am 27.12.2009
 				$cookieName = $this->getCookieMode($resPID, $thePID);
 				if ($this->conf['allowCookieReset'] && $quizData["resetcookie"]) {
 					setcookie ($cookieName, "", time() - 3600);
 					if ($this->helperObj->writeDevLog)
 						t3lib_div::devLog('Cookie reseted: '.$cookieName, $this->extKey, 0);
 				} else {
-					$quizData["qtuid"] = $_COOKIE[$cookieName];	// read quiz taker UID and from a cookie
-					$cookieRead = true;
+					$quizData['qtuid'] = intval($_COOKIE[$cookieName]);	// read quiz taker UID from a cookie
+ 					$cookieRead = true;
 					if ($this->helperObj->writeDevLog)
-						t3lib_div::devLog('Cookie read: '.$cookieName.'='.$quizData["qtuid"], $this->extKey, 0);
+						t3lib_div::devLog('Cookie read: '.$cookieName.'='.$quizData['qtuid'], $this->extKey, 0);
 					// oder? $HTTP_COOKIE_VARS["myquizpoll".$resPID];    oder?  $GLOBALS["TSFE"]->fe_user->getKey("ses","myquizpoll".$resPID);
 				}
 			}
 			
-			if ($quizData["qtuid"] && $this->tableAnswers=='tx_myquizpoll_result') {
+			if ($quizData['qtuid'] && $this->tableAnswers=='tx_myquizpoll_result') {
 				// load solved questions and quiz takers name, email, homepage, old points and last time
-				$uid = intval($quizData["qtuid"]);
+				$uid = intval($quizData['qtuid']);
 				$res5 = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
 					'name, email, homepage, qids,sids,cids,fids, p_or_a, p_max, percent, o_max, o_percent, firsttime, joker1,joker2,joker3, lastcat,nextcat',
 					$this->tableAnswers,
@@ -457,8 +457,8 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 								$nextCat = $fetchedRow['nextcat'];
 								if ($this->conf['startCategory']) $this->conf['startCategory'] = $nextCat;	// kategorie der naechsten frage...
 							}
-							if ($quizData["cmd"]  != 'submit') {			// namen nicht ueberschreiben
-								$whereAnswered = ' AND uid NOT IN ('.$answeredQuestions.')';	// exclude answered questions next time
+							if ($quizData['cmd']  != 'submit') {			// namen nicht ueberschreiben
+								$whereAnswered = ' AND uid NOT IN ('.preg_replace('/[^0-9,]/','',$answeredQuestions).')';	// exclude answered questions next time
 								if (!($quizData["name"] || $quizData["email"] || $quizData["homepage"])) {
 									$quizData["name"] = $fetchedRow['name'];	// abgesendete daten nicht mit default-werten ueberschreiben!
 									$quizData["email"] = $fetchedRow['email'];
@@ -481,16 +481,16 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 							$markerArray["###VAR_NEXT_CATEGORY###"] = $this->catArray[$row['nextcat']]['name'];
 							$elapseTime = time() - $firsttime;
 						}
-						if ($skipped && $quizData["cmd"]  != 'submit') {
-							$whereSkipped = ' AND uid NOT IN ('.$skipped.')';	// exclude skipped questions next time
+						if ($skipped && $quizData['cmd']  != 'submit') {
+							$whereSkipped = ' AND uid NOT IN ('.preg_replace('/[^0-9,]/','',$skipped).')';	// exclude skipped questions next time
 						}
 					}
 					if ($cookieRead) $secondVisit = true;  // es wurde erfolgreich ein cookie gelesen
 				}
 				$GLOBALS['TYPO3_DB']->sql_free_result($res5);
-			} else if ($quizData["qtuid"]) {
+			} else if ($quizData['qtuid']) {
 				// load solved poll question from voting-table
-				$uid = intval($quizData["qtuid"]);
+				$uid = intval($quizData['qtuid']);
 				$res5 = $GLOBALS['TYPO3_DB']->exec_SELECTquery('question_id',
 					$this->tableAnswers,
 					'uid='.$uid.' AND sys_language_uid='.$this->lang);
@@ -503,8 +503,8 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 			} else if ($this->conf['quizTimeMinutes'] && $quizData["time"]) {
 				$elapseTime = time() - intval($quizData["time"]);		// before saving data
 			}
-			if ($quizData["qtuid"] && $this->conf["isPoll"] && $this->conf["secondPollMode"]==1) {
-				$quizData["cmd"] = 'list';
+			if ($quizData['qtuid'] && $this->conf["isPoll"] && $this->conf["secondPollMode"]==1) {
+				$quizData['cmd'] = 'list';
 				if ($this->helperObj->writeDevLog)
 					t3lib_div::devLog("changing to list mode", $this->extKey, 0);
 			}
@@ -512,7 +512,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 				t3lib_div::devLog("old data loaded: $answeredQuestions / $whereAnswered / $whereSkipped", $this->extKey, 0);
 		 }
 		
-		$markerArrayP["###QTUID###"] = intval($quizData["qtuid"]);
+		$markerArrayP["###QTUID###"] = intval($quizData['qtuid']);
 		
 		// check, if quiz is cancled
 		if ( $this->conf['quizTimeMinutes'] && ((intval($this->conf['quizTimeMinutes'])*60 - $elapseTime)<=0) ) {     // oder $quizData['cancel'] == 1 ) {
@@ -529,29 +529,29 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 				$noQuestions = true;
 			} else {
 				if ( $this->conf['highscore.']['showAtFinal'] ) {
-					$quizData["cmd"] = 'score';		// show highscore
+					$quizData['cmd'] = 'score';		// show highscore
 				} else {
-					$quizData["cmd"] = 'exit';		// display no more questions
+					$quizData['cmd'] = 'exit';		// display no more questions
 				}
 				$no_rights = 1;					// cancel all				
 			}
 			if ($this->helperObj->writeDevLog)
-				t3lib_div::devLog("cancel check: $no_rights/".$quizData["cmd"], $this->extKey, 0);
+				t3lib_div::devLog("cancel check: $no_rights/".$quizData['cmd'], $this->extKey, 0);
 		}
 		
 		// show only a start page?
-		if ($this->conf['userData.']['askAtStart'] && !$quizData["qtuid"] && !$quizData["cmd"] && !$quizData["fromStart"]) {		// show only "ask for user data"?
+		if ($this->conf['userData.']['askAtStart'] && !$quizData['qtuid'] && !$quizData['cmd'] && !$quizData["fromStart"]) {		// show only "ask for user data"?
 			$startPage = true;
-			$quizData["cmd"] = 'start';
+			$quizData['cmd'] = 'start';
 		}
 		
 		// next page is a page with questions...
-		if ($quizData["cmd"] == 'next') {
-			$quizData["cmd"] = '';
+		if ($quizData['cmd'] == 'next') {
+			$quizData['cmd'] = '';
 		}
 		
 		
-		if( $quizData["cmd"] == 'submit' && $no_rights == 0 ) {   /* ***************************************************** */
+		if( $quizData['cmd'] == 'submit' && $no_rights == 0 ) {   /* ***************************************************** */
 			/*
 			 * Display result page: answers and points
 			 */
@@ -611,12 +611,12 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 			$whereUIDs = '';
 			$whereCat = '';
 			if ( $this->conf['onlyCategories'] ) {
-				$whereCat = " AND category IN (".addslashes($this->conf['onlyCategories']).")";
+				$whereCat = " AND category IN (".preg_replace('/[^0-9,]/','',$this->conf['onlyCategories']).")";
 			}
 			while( $quizData['uid'.$questionNumber] ) {
 				$answerArray[$questionNumber] = $quizData['uid'.$questionNumber];
-				$lastUIDs .= ','.$quizData['uid'.$questionNumber];
-				$questionNumber++;
+				$lastUIDs .= ','.intval($quizData['uid'.$questionNumber]);
+ 				$questionNumber++;
 			}
 			$maxQuestions = $questionNumber-1;
 			if ($lastUIDs) {
@@ -659,8 +659,8 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 			
 			// Old questions and answers
 			for( $questionNumber=1; $questionNumber < $maxQuestions+1; $questionNumber++ ) {
-				$questionUID = $answerArray[$questionNumber]; 
-				$row = $questionsArray[$questionUID];
+				$questionUID = intval($answerArray[$questionNumber]); 
+ 				$row = $questionsArray[$questionUID];
 				$markerArray["###VAR_QUESTION_NUMBER###"] = $questionNumber;
 					
 				if ($this->conf['isPoll']) {	// link to the result page
@@ -979,10 +979,10 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 			//if ($this->conf['pageQuestions'] > 0 && !$this->conf['isPoll']) {	// more questions aviable? // auskommentiert am 27.12.2009, denn der Cheat-Test muss immer kommen!
 			
 				if (!$this->conf['showAnswersSeparate'])
-					$quizData["cmd"] = '';						// show more/next questions!
+					$quizData['cmd'] = '';						// show more/next questions!
 				// Seek for old answered questions
-				if ($quizData["qtuid"]) {						// bei einfachen Umfragen sollte es die hier nicht geben
-					$uid = intval($quizData["qtuid"]);
+				if ($quizData['qtuid']) {						// bei einfachen Umfragen sollte es die hier nicht geben
+					$uid = intval($quizData['qtuid']);
 					$res5 = $GLOBALS['TYPO3_DB']->exec_SELECTquery('qids,cids,fids,sids, p_or_a, p_max, joker1,joker2,joker3',
 						$this->tableAnswers,
 						'uid='.$uid.' AND sys_language_uid='.$this->lang); //.' '.$this->cObj->enableFields($this->tableAnswers), auskommentiert am 7.11.10
@@ -1030,7 +1030,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 								$markerArray["###CHEATING###"] = $this->pi_getLL('cheating','cheating');
 								$template = $this->cObj->getSubpart($this->templateCode, "###TEMPLATE_CHEATING###");
 								$markerArrayP["###REF_RES_ERRORS###"] .= $this->cObj->substituteMarkerArray($template, $markerArray);	// instead $content
-								/*$tempTime = $this->helperObj->getPageTime($quizData["qtuid"]);
+								/*$tempTime = $this->helperObj->getPageTime($quizData['qtuid']);
 								if ($tempTime) {
 									$markerArrayP["###VAR_NOW###"] = $markerArray["###VAR_NOW###"] = $tempTime;
 								}*/
@@ -1059,9 +1059,9 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 				}
 				
 				$whereAnswered = '';
-				if ($answered) $whereAnswered = ' AND uid NOT IN ('.$answered.')';	// exclude answered questions next time
+				if ($answered) $whereAnswered = ' AND uid NOT IN ('.preg_replace('/[^0-9,]/','',$answered).')';	// exclude answered questions next time
 				$whereSkipped = '';
-				if ($skipped) $whereSkipped = ' AND uid NOT IN ('.$skipped.')';	// exclude skipped questions next time
+				if ($skipped) $whereSkipped = ' AND uid NOT IN ('.preg_replace('/[^0-9,]/','',$skipped).')';	// exclude skipped questions next time
 				
 				if ($skippedCount > 0) {
 					$markerArray["###VAR_NO###"] = $skippedCount;
@@ -1073,11 +1073,11 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 			//} else 
 			if (!$this->conf['pageQuestions']) {
 				if ( $this->conf['highscore.']['showAtFinal'] )
-					$quizData["cmd"] = 'score';			// otherwise decide this later
+					$quizData['cmd'] = 'score';			// otherwise decide this later
 				else
-					$quizData["cmd"] = 'nix';		// keine neuen Fragen...
+					$quizData['cmd'] = 'nix';		// keine neuen Fragen...
 			} else if ( $this->conf['isPoll'] && !$nextCat ) {
-				$quizData["cmd"] = 'list';
+				$quizData['cmd'] = 'list';
 			}
 			
 			$markerArray["###VAR_QUESTIONS_ANSWERED###"] = (($answered) ? (substr_count($answered,',')+1) : 0);
@@ -1183,27 +1183,27 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 				}
 				$success = $GLOBALS['TYPO3_DB']->exec_INSERTquery($this->tableAnswers, $insert);
 				if($success){
-					$quizData["qtuid"] = $GLOBALS['TYPO3_DB']->sql_insert_id();
+					$quizData['qtuid'] = $GLOBALS['TYPO3_DB']->sql_insert_id();
 					if ($this->tableAnswers=='tx_myquizpoll_result')
-						$this->helperObj->setStartUid($quizData["qtuid"], intval($quizData["start_uid"]));
+						$this->helperObj->setStartUid($quizData['qtuid'], intval($quizData["start_uid"]));
 					if ( $this->conf['useCookiesInDays'] ) {	// save quiz takers UID as cookie?
 						$cookieName = $this->getCookieMode($resPID, $thePID);
 						//if (!($this->conf['isPoll'] && $_COOKIE[$cookieName])) {	// bein Umfragen Cookie nicht ueberschreiben...
-							if ($this->helperObj->writeDevLog)	t3lib_div::devLog('Storing Cookie: '.$cookieName.'='.$quizData["qtuid"], $this->extKey, 0);
+							if ($this->helperObj->writeDevLog)	t3lib_div::devLog('Storing Cookie: '.$cookieName.'='.$quizData['qtuid'], $this->extKey, 0);
 							if (intval($this->conf['useCookiesInDays'])==-1)
 								$periode = 0;
 							else
 								$periode = time()+(3600*24*intval($this->conf['useCookiesInDays']));
-							setcookie($cookieName, $quizData["qtuid"], $periode);  /* cookie for x days */
+							setcookie($cookieName, $quizData['qtuid'], $periode);  /* cookie for x days */
 						//}
 					}
-					$this->helperObj->setFirstTime($quizData["qtuid"], $firsttime);
+					$this->helperObj->setFirstTime($quizData['qtuid'], $firsttime);
 				} else {
 					$content.="<p>MySQL Insert-Error for table ".$this->tableAnswers." :-(</p>";
 				}
 			} else if ($doUpdate==1) {
 				// update current user entry
-				$uid=intval($quizData["qtuid"]);
+				$uid=intval($quizData['qtuid']);
 				$timestamp = time();
 				$update = array('tstamp' => $timestamp,
 								'hidden' => $hidden,
@@ -1227,7 +1227,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 				}
 			} else if ($doUpdate==3) {
 				// update current skipped entry (only skipped questions?!?!)
-				$uid=intval($quizData["qtuid"]);
+				$uid=intval($quizData['qtuid']);
 				$timestamp = time();
 				$update = array('tstamp' => $timestamp,
 								'hidden' => $hidden,
@@ -1239,8 +1239,8 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 				}
 			}
 			
-			$markerArray["###QTUID###"] = $quizData["qtuid"];
-		
+			$markerArray["###QTUID###"] = intval($quizData["qtuid"]);
+ 			
 			if ( $this->conf['isPoll'] ) {
 				$template = $this->cObj->getSubpart($this->templateCode, "###TEMPLATE_POLL_SUBMITED###");	// Output thank you
 				$markerArray['###QUESTION_NAME###'] = $this->pi_getLL('poll_question','poll_question');
@@ -1253,7 +1253,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 			
 			if ($this->conf['advancedStatistics'] && $doUpdate<2) {
 				// write advanced Statistics to database
-				$uid=intval($quizData["qtuid"]);
+				$uid=intval($quizData['qtuid']);
 				$timestamp = time();
 				$firsttime = $this->helperObj->getFirstTime($uid);
 				if ($this->conf['requireSession']) $where_time=' AND crdate='.$firsttime;
@@ -1294,7 +1294,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 		
 		
 		if( $this->conf['finishedMinPercent'] && $this->conf['pageQuestions']>0 && $markerArray["###VAR_TOTAL_POINTS###"]!=='' &&
-		  (!$this->conf['showAnswersSeparate'] || !$quizData["cmd"]) && $no_rights==0 ) {  /* ***************************************************** */
+		  (!$this->conf['showAnswersSeparate'] || !$quizData['cmd']) && $no_rights==0 ) {  /* ***************************************************** */
 			/*
 			 * Display positive cancel page: quiz taker has reached finishedMinPercent percent???
 			 */
@@ -1325,15 +1325,15 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 				
 				$answerPage = false;
 				if ( $this->conf['highscore.']['showAtFinal'] ) {
-					$quizData["cmd"] = 'score';		// show highscore
+					$quizData['cmd'] = 'score';		// show highscore
 				} else {
-					$quizData["cmd"] = 'exit';		// display no more questions
+					$quizData['cmd'] = 'exit';		// display no more questions
 				}
 			}
 		}
 		
 		if( $this->conf['cancelWhenWrong'] && $this->conf['pageQuestions']>0 && ($markerArray["###VAR_TOTAL_POINTS###"]!=='') &&
-		  (!$this->conf['showAnswersSeparate'] || !$quizData["cmd"]) && $no_rights==0 ) {  /* ***************************************************** */
+		  (!$this->conf['showAnswersSeparate'] || !$quizData['cmd']) && $no_rights==0 ) {  /* ***************************************************** */
 			/*
 			 * Display negative cancel page: quiz taker has given a wrong answer???
 			 */
@@ -1355,9 +1355,9 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 					$noQuestions = true;
 				} else {
 					if ( $this->conf['highscore.']['showAtFinal'] ) {
-						$quizData["cmd"] = 'score';		// show highscore
+						$quizData['cmd'] = 'score';		// show highscore
 					} else {
-						$quizData["cmd"] = 'exit';		// display no more questions
+						$quizData['cmd'] = 'exit';		// display no more questions
 					}
 					$no_rights = 1;					// cancel all				
 				}
@@ -1375,18 +1375,18 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 			if (!$quizData["homepage"]) { $quizData["homepage"] = $GLOBALS['TSFE']->fe_user->user['www']; }
 		}
 		if ($quizData["name"]) {
-			$markerArray["###DEFAULT_NAME###"] = $quizData["name"];
-		} else {
+			$markerArray["###DEFAULT_NAME###"] = htmlspecialchars($quizData["name"]);
+ 		} else {
 			$markerArray["###DEFAULT_NAME###"] = $this->pi_getLL('no_name','no_name');
 		}
 		if ($quizData["email"]) {
-			$markerArray["###DEFAULT_EMAIL###"] = $quizData["email"];
-		} else {
+			$markerArray["###DEFAULT_EMAIL###"] = htmlspecialchars($quizData["email"]);
+ 		} else {
 			$markerArray["###DEFAULT_EMAIL###"] = $this->pi_getLL('no_email','no_email');
 		}
 		if ($quizData["homepage"]) {
-			$markerArray["###DEFAULT_HOMEPAGE###"] = $quizData["homepage"];
-		} else {
+			$markerArray["###DEFAULT_HOMEPAGE###"] = htmlspecialchars($quizData["homepage"]);
+ 		} else {
 			$markerArray["###DEFAULT_HOMEPAGE###"] = $this->pi_getLL('no_homepage','no_homepage');
 		}
 		$markerArray["###HIDE_ME###"] = $this->pi_getLL('hide_me','hide_me');
@@ -1394,21 +1394,21 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 		
 		// UID loeschen bei Umfragen
 		if ($this->conf['isPoll']) {
-			$quizData["qtuid"] = '';
+			$quizData['qtuid'] = '';
 		}
 		
 		
-		if( $quizData["cmd"] == '' && $no_rights==0 ) {           /* ***************************************************** */
+		if( $quizData['cmd'] == '' && $no_rights==0 ) {           /* ***************************************************** */
 			/*
 			 * Display initial page: questions and quiz taker name fields
 			 */
 			
 			$oldRelData=array();
-			if ($this->conf['allowBack'] && $this->conf['pageQuestions'] && $quizData["qtuid"] && $back>0) {
+			if ($this->conf['allowBack'] && $this->conf['pageQuestions'] && $quizData['qtuid'] && $back>0) {
 				$where='';
 				$where_rel='';
 				$where_time='';
-				$uid = intval($quizData["qtuid"]);
+				$uid = intval($quizData['qtuid']);
 				if ($this->conf['requireSession']) $where_time=' AND firsttime='.$this->helperObj->getFirstTime($uid);
 				$res5 = $GLOBALS['TYPO3_DB']->exec_SELECTquery('name,email,homepage,qids',
 					$this->tableAnswers,
@@ -1426,25 +1426,25 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 						}
 					}
 					if ($where) {
-						$where=' AND uid IN ('.rtrim($where,',').')';
-						$where_rel=' AND user_id IN ('.rtrim($where,',').')';
+						$where=' AND uid IN ('.preg_replace('/[^0-9,]/','',rtrim($where,',')).')';
+						$where_rel=' AND user_id IN ('.preg_replace('/[^0-9,]/','',rtrim($where,',')).')';
 					}
 					$quizData["name"] = $fetchedRow['name'];
 					$quizData["email"] = $fetchedRow['email'];
 					$quizData["homepage"] = $fetchedRow['homepage'];
 					if ($quizData["name"]) {
-						$markerArray["###DEFAULT_NAME###"] = $quizData["name"];
-					} else {
+						$markerArray["###DEFAULT_NAME###"] = htmlspecialchars($quizData["name"]);
+ 					} else {
 						$markerArray["###DEFAULT_NAME###"] = $this->pi_getLL('no_name','no_name');
 					}
 					if ($quizData["email"]) {
-						$markerArray["###DEFAULT_EMAIL###"] = $quizData["email"];
-					} else {
+						$markerArray["###DEFAULT_EMAIL###"] = htmlspecialchars($quizData["email"]);
+ 					} else {
 						$markerArray["###DEFAULT_EMAIL###"] = $this->pi_getLL('no_email','no_email');
 					}
 					if ($quizData["homepage"]) {
-						$markerArray["###DEFAULT_HOMEPAGE###"] = $quizData["homepage"];
-					} else {
+						$markerArray["###DEFAULT_HOMEPAGE###"] = htmlspecialchars($quizData["homepage"]);
+ 					} else {
 						$markerArray["###DEFAULT_HOMEPAGE###"] = $this->pi_getLL('no_homepage','no_homepage');
 					}
 				}
@@ -1514,13 +1514,13 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 				}
 				// Limit questions?
 				if ( $this->conf['pageQuestions']>0 && $this->conf['sortBy']!='random' ) {
-					$limitTo = $this->conf['pageQuestions'];
+					$limitTo = preg_replace('/[^0-9,]/','',$this->conf['pageQuestions']);
 				}
 				// category
 				if ( $this->conf['startCategory'] ) {
 					$whereCat = " AND category=".intval($this->conf['startCategory']);
 				} else if ( $this->conf['onlyCategories'] ) {
-					$whereCat = " AND category IN (".addslashes($this->conf['onlyCategories']).")";
+					$whereCat = " AND category IN (".preg_replace('/[^0-9,]/','',$this->conf['onlyCategories']).")";
 				}
 				
 				// Get questions from the database
@@ -1680,9 +1680,8 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 					
 					// Jokers
 					if ($this->conf['useJokers'] && $this->conf['pageQuestions']==1) {
-						$temp_uid = $quizData["qtuid"];
+						$temp_uid = intval($quizData['qtuid']);
 						$markerArrayJ["###JAVASCRIPT###"] = '';
-						if (!$temp_uid) $temp_uid=0;
 						$markerArrayJ["###JOKER_50###"] = $this->pi_getLL('joker_50','joker_50');
 						$markerArrayJ["###JOKER_AUDIENCE###"] = $this->pi_getLL('joker_audience','joker_audience');
 						$markerArrayJ["###JOKER_PHONE###"] = $this->pi_getLL('joker_phone','joker_phone');
@@ -1878,7 +1877,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 						$markerArrayQ["###VAR_QUESTION_ANSWER###"] .= "</select>\n";
 						$markerArray["###REF_QUESTION_ANSWER###"] .= $this->cObj->substituteMarkerArray($template_answer, $markerArrayQ);
 					}
-					if ( ($this->helperObj->getAskAtQ($quizData["qtuid"]) || $questionNumber<$maxQuestions) && !$this->conf['isPoll'] ) {
+					if ( ($this->helperObj->getAskAtQ($quizData['qtuid']) || $questionNumber<$maxQuestions) && !$this->conf['isPoll'] ) {
 						$markerArray["###REF_DELIMITER###"] = $this->cObj->substituteMarkerArray($template_delimiter, $markerArray);
 					} else {
 						$markerArray["###REF_DELIMITER###"] = '';
@@ -1913,7 +1912,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 				if ($this->helperObj->writeDevLog)	t3lib_div::devLog('last question: '.$lastUID, $this->extKey, 0);
 				
 				// back-button
-				if ($this->conf['allowBack'] && $this->conf['pageQuestions'] && $quizData["qtuid"]) {
+				if ($this->conf['allowBack'] && $this->conf['pageQuestions'] && $quizData['qtuid']) {
 					$markerArrayP["###HIDDENFIELDS###"] .= '  <input type="hidden" name="'.$this->prefixId.'[back]" value="'.$back.'" />';
 					$markerArrayP["###HIDDENFIELDS###"] .= '  <input type="hidden" name="'.$this->prefixId.'[back-hit]" value="0" />';
 					$markerArray['###BACK_STYLE###'] = ($seite == 1) ? ' style="display:none;"' : '';
@@ -1921,7 +1920,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 				} else $markerArray['###BACK_STYLE###'] = ' style="display:none;"';
 				
 				// Submit/User-Data Template
-				if ( $this->helperObj->getAskAtQ($quizData["qtuid"]) && !$this->conf['isPoll'] ) {
+				if ( $this->helperObj->getAskAtQ($quizData['qtuid']) && !$this->conf['isPoll'] ) {
 					$template = $this->cObj->getSubpart($this->templateCode, "###TEMPLATE_QUIZ_USER_TO_SUBMIT###");
 					if (is_object($this->freeCap) && $this->conf['enableCaptcha']) {
 						$markerArray = array_merge($markerArray, $this->freeCap->makeCaptcha());
@@ -1933,27 +1932,24 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 					$template = $this->cObj->getSubpart($this->templateCode, "###TEMPLATE_SUBMIT###");
 					$markerArrayP["###REF_SUBMIT_FIELDS###"] = $this->cObj->substituteMarkerArray($template, $markerArray);
 					$markerArrayP["###HIDDENFIELDS###"] .= '  <input type="hidden" name="name" value="'.$markerArray["###DEFAULT_NAME###"].'" /> ';	// KGB: wozu ???
-					$markerArrayP["###HIDDENFIELDS###"] .= '  <input type="hidden" name="'.$this->prefixId.'[name]" value="'.$quizData["name"].'" />';
-					$markerArrayP["###HIDDENFIELDS###"] .= '  <input type="hidden" name="'.$this->prefixId.'[email]" value="'.$quizData["email"].'" />';
-					$markerArrayP["###HIDDENFIELDS###"] .= '  <input type="hidden" name="'.$this->prefixId.'[homepage]" value="'.$quizData["homepage"].'" />';
-				} else {
+					$markerArrayP["###HIDDENFIELDS###"] .= '  <input type="hidden" name="'.$this->prefixId.'[name]" value="'.htmlspecialchars($quizData["name"]).'" />';
+					$markerArrayP["###HIDDENFIELDS###"] .= '  <input type="hidden" name="'.$this->prefixId.'[email]" value="'.htmlspecialchars($quizData["email"]).'" />';
+					$markerArrayP["###HIDDENFIELDS###"] .= '  <input type="hidden" name="'.$this->prefixId.'[homepage]" value="'.htmlspecialchars($quizData["homepage"]).'" />';
+									} else {
 					$markerArray["###NO_SUBMIT###"] = $this->pi_getLL('no_submit','no_submit');
 					$template = $this->cObj->getSubpart($this->templateCode, "###TEMPLATE_NO_SUBMIT###");
 					$markerArrayP["###REF_SUBMIT_FIELDS###"] = $this->cObj->substituteMarkerArray($template, $markerArray); // new in 0.1.8
 				}
 
-				if (!$this->conf['isPoll']) {		// when is Poll, do not update result-table
-					$markerArrayP["###HIDDENFIELDS###"] .= '  <input type="hidden" name="'.$this->prefixId.'[qtuid]" value="'.$quizData["qtuid"].'" />';  // statt $template .= since 0.1.8
-				}
-				if ($this->conf['hideByDefault']) {
+				if (!$this->conf['isPoll'])		// when is Poll, do not update result-table
+					$markerArrayP["###HIDDENFIELDS###"] .= '  <input type="hidden" name="'.$this->prefixId.'[qtuid]" value="'.intval($quizData["qtuid"]).'" />';
+				if ($this->conf['hideByDefault'])
 					$markerArrayP["###HIDDENFIELDS###"] .= '  <input type="hidden" name="'.$this->prefixId.'[hidden]" value="1" />';
-				}
-				//$template .= "<input type=\"hidden\" name=\"###PREFIX###[max]\" value=\"$maxPoints\">\n";  // old, deprecated since 0.1.7
-				if (!$quizData["qtuid"])
+				if (!$quizData['qtuid'])
 					$markerArrayP["###HIDDENFIELDS###"] .= '
   <input type="hidden" name="'.$this->prefixId.'[start_uid]" value="'.$GLOBALS['TSFE']->id.'" />
   <input type="hidden" name="'.$this->prefixId.'[time]" value="'.time().'" />';
-					$markerArrayP["###HIDDENFIELDS###"] .= '
+				$markerArrayP["###HIDDENFIELDS###"] .= '
   <input type="hidden" name="no_cache" value="1" />
   <input type="hidden" name="'.$this->prefixId.'[cmd]" value="submit" />';
 				
@@ -1964,8 +1960,8 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
   <input type="hidden" name="'.$this->prefixId.'[joker3]" value="0" />';
 				}
 				$markerArrayP["###HIDDENFIELDS###"] .= ($quizData['debugMode']) ?
-  '<input type="hidden" name="'.$this->prefixId.'[debugMode]" value="'.$quizData['debugMode'].'" />' : '';
-				
+  '  <input type="hidden" name="'.$this->prefixId.'[debugMode]" value="'.htmlspecialchars($quizData['debugMode']).'" />' : '';
+ 				
 				$markerArrayP["###MAX_PAGES###"] = $this->helperObj->getMaxPages();
 				$markerArrayP["###PAGE###"] = $this->helperObj->getPage($questTillNow);
 				$markerArrayP["###FE_USER_UID###"] = intval($GLOBALS['TSFE']->fe_user->user['uid']);
@@ -2009,7 +2005,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 				$markerArrayP["###RESET_COOKIE###"] = $markerArray["###RESET_COOKIE###"];
 				
 				if ( $this->conf['highscore.']['showAtFinal'] ) {
-					$quizData["cmd"] = 'score';
+					$quizData['cmd'] = 'score';
 				}
 				$finalPage = true;
 			
@@ -2018,14 +2014,14 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 			// myVars for page
 			$markerArrayP = array_merge($markerArrayP, $this->helperObj->setPageVars());	
 			
-		} else if ($this->conf['showAnswersSeparate'] && $quizData["cmd"]=='submit' && !$this->conf['isPoll'] && $no_rights==0) { /* ***************************************************** */
+		} else if ($this->conf['showAnswersSeparate'] && $quizData['cmd']=='submit' && !$this->conf['isPoll'] && $no_rights==0) { /* ***************************************************** */
 			/*
 			 * Display only a next button
 			 */
 			 
 			$template = $this->cObj->getSubpart($this->templateCode, "###TEMPLATE_NEXT###");
 			// back-button
-			if ($this->conf['allowBack'] && $this->conf['pageQuestions'] && $quizData["qtuid"]) {
+			if ($this->conf['allowBack'] && $this->conf['pageQuestions'] && $quizData['qtuid']) {
 				$markerArray["###HIDDENFIELDS###"] = '';
 				$markerArray['###BACK_STYLE###'] = '';
 //				<input type="button" name="'.$this->prefixId.'[back-button]" value="'.$this->pi_getLL('back','back').'" class="tx_myquizpoll_pi1-back"
@@ -2034,8 +2030,8 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 	<input type="hidden" name="'.$this->prefixId.'[back-hit]" value="0" />';
 			} else $markerArray['###BACK_STYLE###'] = ' style="display:none;"';
 			$markerArray["###HIDDENFIELDS###"] .= ($quizData['debugMode']) ? 
-				'<input type="hidden" name="'.$this->prefixId.'[debugMode]" value="'.$quizData['debugMode'].'" />' : '';
-			if ($template == '')	// if it is not in the template
+	'  <input type="hidden" name="'.$this->prefixId.'[debugMode]" value="'.htmlspecialchars($quizData['debugMode']).'" />' : '';
+ 			if ($template == '')	// if it is not in the template
 				$template = $this->cObj->getSubpart($this->origTemplateCode, "###TEMPLATE_NEXT###");
 			$markerArrayP["###REF_NEXT###"] = $this->cObj->substituteMarkerArray($template, $markerArray);	// instead $content
 		}
@@ -2044,19 +2040,19 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 		
 		
 		/** Redirect to the final page? **/
-		if ($finalPage && $quizData["cmd"] != 'exit' && $this->conf['finalPID'] && ($finalPID != intval($GLOBALS["TSFE"]->id))) {
-			$this->redirectUrl($finalPID, array($this->prefixId . '[qtuid]' => $quizData["qtuid"], $this->prefixId . '[cmd]' => 'next'));
-			break;	// unnoetig...
+		if ($finalPage && $quizData['cmd'] != 'exit' && $this->conf['finalPID'] && ($finalPID != intval($GLOBALS["TSFE"]->id))) {
+			$this->redirectUrl($finalPID, array($this->prefixId . '[qtuid]' => intval($quizData["qtuid"]), $this->prefixId . '[cmd]' => 'next'));
+ 			break;	// unnoetig...
 		}
 		
 		/** Poll result? **/
 		if ($answerPage && $this->conf['isPoll']) {
-			$quizData["cmd"] = 'list';
+			$quizData['cmd'] = 'list';
 		}
 		
 		
 		// Make a page-layout
-		if ( $quizData["cmd"] == 'allanswers' && !$this->conf['isPoll'] ) {    /* ***************************************************** */		
+		if ( $quizData['cmd'] == 'allanswers' && !$this->conf['isPoll'] ) {    /* ***************************************************** */		
 			/*
 			 * Display all questions and correct answers
 			 */
@@ -2065,12 +2061,12 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 		}
 		
 		
-		if ( $quizData["cmd"] == 'score' && !$this->conf['isPoll'] ) {         /* ***************************************************** */
+		if ( $quizData['cmd'] == 'score' && !$this->conf['isPoll'] ) {         /* ***************************************************** */
 			/*
 			 * Display highscore page: top 10 table
 			 */
-			if ($quizData["setUserData"] && $quizData["qtuid"] && $quizData["name"]) {	// ggf. erst Benutzerdaten in der DB setzen...
-				$uid = intval($quizData["qtuid"]);
+			if ($quizData["setUserData"] && $quizData['qtuid'] && $quizData["name"]) {	// ggf. erst Benutzerdaten in der DB setzen...
+				$uid = intval($quizData['qtuid']);
 				$firsttime = $this->helperObj->getFirstTime($uid);
 				if ($firsttime == intval($quizData["setUserData"])) {		// Security test bestanden?
 					// update current user entry
@@ -2106,7 +2102,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 			else
 				$content .= $this->showHighscoreList($quizData, $resPIDs, $listPID);
 		
-		} else if ( $quizData["cmd"] == 'list' && $this->conf['isPoll'] ) {    /* ***************************************************** */
+		} else if ( $quizData['cmd'] == 'list' && $this->conf['isPoll'] ) {    /* ***************************************************** */
 			/*
 			 * Display poll result
 			 */
@@ -2118,12 +2114,12 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 		}
 		
 		
-		if ( !$this->conf['isPoll'] && $quizData["cmd"]!='score' ) {	// show highscore link?
+		if ( !$this->conf['isPoll'] && $quizData['cmd']!='score' ) {	// show highscore link?
   			$template = $this->cObj->getSubpart($this->templateCode, "###TEMPLATE_HIGHSCORE_URL###");
 			$markerArrayP["###REF_HIGHSCORE_URL###"] = $this->cObj->substituteMarkerArray($template, $markerArray);
   		}
 		
-		if ( $this->conf['isPoll'] && $quizData["cmd"]!='list' ) {	// show poll result link?
+		if ( $this->conf['isPoll'] && $quizData['cmd']!='list' ) {	// show poll result link?
   			$template = $this->cObj->getSubpart($this->templateCode, "###TEMPLATE_POLLRESULT_URL###");
   			//if ($questionPage || $answerPage)
 				$markerArrayP["###REF_POLLRESULT_URL###"] = $this->cObj->substituteMarkerArray($template, $markerArray);
@@ -2154,10 +2150,10 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 		
 		
 		/** Layout for a result page **/
-		if ($answerPage && $quizData["cmd"] != 'exit') {
+		if ($answerPage && $quizData['cmd'] != 'exit') {
 			if ( $this->conf['quizTimeMinutes'] ) {
 				$template = $this->cObj->getSubpart($this->templateCode, "###TEMPLATE_QUIZ_TIME_LIMIT###");
-				if (!$quizData["qtuid"]) {
+				if (!$quizData['qtuid']) {
 					$markerArray["###VAR_SECS###"] = intval($this->conf['quizTimeMinutes'])*60;
 					$markerArray["###VAR_MIN###"] = $this->conf['quizTimeMinutes'];
 				} else {
@@ -2180,7 +2176,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 
 		
 		/** Layout for a questions page **/
-		if ($questionPage && $quizData["cmd"] != 'exit') {
+		if ($questionPage && $quizData['cmd'] != 'exit') {
 			if ( $this->conf['pageTimeSeconds'] ) {
 				$template = $this->cObj->getSubpart($this->templateCode, "###TEMPLATE_PAGE_TIME_LIMIT###");
 				$markerArray["###VAR_SECS###"] = ($pageTimeCat) ? $pageTimeCat : $this->conf['pageTimeSeconds'];
@@ -2191,7 +2187,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 			
 			if ( $this->conf['quizTimeMinutes'] ) {
 				$template = $this->cObj->getSubpart($this->templateCode, "###TEMPLATE_QUIZ_TIME_LIMIT###");
-				if (!$quizData["qtuid"]) {
+				if (!$quizData['qtuid']) {
 					$markerArray["###VAR_SECS###"] = intval($this->conf['quizTimeMinutes'])*60;
 					$markerArray["###VAR_MIN###"] = $this->conf['quizTimeMinutes'];
 				} else {
@@ -2213,7 +2209,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 		/** Layout for the last/final page **/
 		$uidP = 0;		// page UID
 		$uidC = 0;		// content UID
-		if ($finalPage && $quizData["cmd"] != 'exit') {  // nicht noetig: && !$this->conf['isPoll']) {
+		if ($finalPage && $quizData['cmd'] != 'exit') {  // nicht noetig: && !$this->conf['isPoll']) {
 		
 			if (($this->conf['showAnalysis'] || $this->conf['showEvaluation']) && !$this->conf['dontShowPoints']) {	// Analysis depends on points
 				if ($this->helperObj->writeDevLog)	t3lib_div::devLog('Displaying Analysis: '.$this->conf['showAnalysis'].' or Evaluation: '.$this->conf['showEvaluation'], $this->extKey, 0);
@@ -2275,7 +2271,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 					$catCount = 0;
 					$res5 = $GLOBALS['TYPO3_DB']->exec_SELECTquery('DISTINCT nextcat, COUNT(nextcat) anzahl',
 						$this->tableRelation,
-						'nextcat>0 AND user_id='.intval($quizData["qtuid"]).' AND sys_language_uid='.$this->lang, //.' '.$this->cObj->enableFields($this->tableRelation), auskommentiert am 7.11.10
+						'nextcat>0 AND user_id='.intval($quizData['qtuid']).' AND sys_language_uid='.$this->lang, //.' '.$this->cObj->enableFields($this->tableRelation), auskommentiert am 7.11.10
 						'nextcat',
 						'anzahl DESC',
 						'');
@@ -2326,7 +2322,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 				}
 				
 				// User-Data Template
-				if ( $this->conf['userData.']['askAtFinal'] && $quizData["qtuid"] ) {
+				if ( $this->conf['userData.']['askAtFinal'] && $quizData['qtuid'] ) {
 					$template = $this->cObj->getSubpart($this->templateCode, "###TEMPLATE_QUIZ_USER_TO_SUBMIT###");
 					$markerArray['###BACK_STYLE###'] = ' style="display:none;"';
 					if (is_object($this->freeCap) && $this->conf['enableCaptcha']) {
@@ -2334,10 +2330,10 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 					} else {
 						$subpartArray['###CAPTCHA_INSERT###'] = '';
 					}
-					$firsttime = $this->helperObj->getFirstTime($quizData["qtuid"]);
+					$firsttime = $this->helperObj->getFirstTime($quizData['qtuid']);
 					$markerArrayP["###REF_SUBMIT_FIELDS###"] = $this->cObj->substituteMarkerArrayCached($template,$markerArray,$subpartArray,$wrappedSubpartArray);
-					$markerArrayP["###HIDDENFIELDS###"] = "\n".'  <input type="hidden" name="'.$this->prefixId.'[qtuid]" value="'.$quizData["qtuid"].'" />'."\n";
-					$markerArrayP["###HIDDENFIELDS###"] .= '  <input type="hidden" name="'.$this->prefixId.'[setUserData]" value="'.$firsttime.'" />'."\n";
+					$markerArrayP["###HIDDENFIELDS###"] = "\n".'  <input type="hidden" name="'.$this->prefixId.'[qtuid]" value="'.intval($quizData["qtuid"]).'" />'."\n";
+ 					$markerArrayP["###HIDDENFIELDS###"] .= '  <input type="hidden" name="'.$this->prefixId.'[setUserData]" value="'.$firsttime.'" />'."\n";
 					$markerArrayP["###HIDDENFIELDS###"] .= '  <input type="hidden" name="'.$this->prefixId.'[fromFinal]" value="1" />';
 				}
 				
@@ -2358,9 +2354,9 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 			$markerArrayP["###EMAIL_TAKEN###"] = $this->pi_getLL('email_taken','email_taken');
 			if (!$markerArrayP["###REF_INTRODUCTION###"] && !$this->conf['isPoll']) {
 				if (!$markerArray["###RESULT_FOR###"]) {
-					$markerArray["###REAL_NAME###"] = $quizData["name"];
-					$markerArray["###REAL_EMAIL###"] = $quizData["email"];
-					$markerArray["###REAL_HOMEPAGE###"] = $quizData["homepage"];
+					$markerArray["###REAL_NAME###"] = htmlspecialchars($quizData['name']);
+					$markerArray["###REAL_EMAIL###"] = htmlspecialchars($quizData['email']);
+					$markerArray["###REAL_HOMEPAGE###"] = htmlspecialchars($quizData['homepage']);
 					$markerArray["###RESULT_FOR###"] = $this->pi_getLL('result_for','result_for');
 				}
 				$template = $this->cObj->getSubpart($this->templateCode, "###TEMPLATE_QUIZ_USER_SUBMITED###"); // Output the user name
@@ -2403,7 +2399,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 			$loesche='';
 			$counter=0;
 			$where = 'pid='.$resPID;
-			$where .= ' AND (crdate<'.(time()-86400).' OR uid='.intval($quizData["qtuid"]).')';
+			$where .= ' AND (crdate<'.(time()-86400).' OR uid='.intval($quizData['qtuid']).')';
 			if ($this->conf['deleteResults'] == 2) $where .= ' AND fe_uid=0';
 			if ($this->conf['deleteResults'] == 3) $where .= " AND name='".$GLOBALS['TYPO3_DB']->quoteStr($this->pi_getLL('no_name','no_name'), $this->tableAnswers)."'";
 			$res5 = $GLOBALS['TYPO3_DB']->exec_SELECTquery('uid',$this->tableAnswers,$where,'','crdate DESC','255');
@@ -2422,10 +2418,10 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 				if ($this->conf['deleteResults'] == 2 && $fe_uid>0) {
 					$where2 = ' AND fe_uid='.$fe_uid;
 				} else if ($this->conf['deleteResults'] == 3 && $quizData["name"]!=$this->pi_getLL('no_name','no_name') && $quizData["name"]) {
-					$where2 = " AND name='".addslashes($quizData["name"])."'";
+					$where2 = " AND name='".$GLOBALS['TYPO3_DB']->quoteStr($quizData["name"], $this->tableAnswers)."'";
 				}
 				if ($where2) {
-					$start_uid = $this->helperObj->getStartUid($quizData["qtuid"]);
+					$start_uid = $this->helperObj->getStartUid($quizData['qtuid']);
 					$res5 = $GLOBALS['TYPO3_DB']->exec_SELECTquery('uid, o_percent, crdate',
 						$this->tableAnswers,
 						'pid='.$resPID.' AND sys_language_uid='.$this->lang.' AND start_uid='.$start_uid.$where2,
@@ -2447,8 +2443,8 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 			}
 			if ($this->helperObj->writeDevLog)	t3lib_div::devLog('Deleting result data with: '.$where.$where2.' => '.$loesche, $this->extKey, 0);
 			if ($loesche) {
-				$res = $GLOBALS['TYPO3_DB']->exec_DELETEquery($this->tableRelation, 'user_id IN ('.$loesche.')');
-				$res = $GLOBALS['TYPO3_DB']->exec_DELETEquery($this->tableAnswers, 'uid IN ('.$loesche.')');
+				$res = $GLOBALS['TYPO3_DB']->exec_DELETEquery($this->tableRelation, 'user_id IN ('.preg_replace('/[^0-9,]/','',$loesche).')');
+				$res = $GLOBALS['TYPO3_DB']->exec_DELETEquery($this->tableAnswers, 'uid IN ('.preg_replace('/[^0-9,]/','',$loesche).')');
 			}
 		}
 		
@@ -2486,7 +2482,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 			}
 			$res5 = $GLOBALS['TYPO3_DB']->exec_SELECTquery($select.' question_id',
 				$this->tableRelation,
-				'pid='.$resPID.' AND sys_language_uid='.$this->lang.' AND (hidden=0 OR user_id='.intval($quizData["qtuid"]).')',	// statt .$this->cObj->enableFields($this->tableRelation), am 15.11.10
+				'pid='.$resPID.' AND sys_language_uid='.$this->lang.' AND (hidden=0 OR user_id='.intval($quizData['qtuid']).')',	// statt .$this->cObj->enableFields($this->tableRelation), am 15.11.10
 				'question_id');
 			$rows = $GLOBALS['TYPO3_DB']->sql_num_rows($res5);
 			if ($rows>0) {
@@ -2500,10 +2496,10 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 			$GLOBALS['TYPO3_DB']->sql_free_result($res5);
 			//print_r($statHash);
 			
-			if ($quizData["qtuid"]) {
+			if ($quizData['qtuid']) {
 				$res5 = $GLOBALS['TYPO3_DB']->exec_SELECTquery('*',
 					$this->tableRelation,
-					'user_id='.intval($quizData["qtuid"]).' AND pid='.$resPID.' AND sys_language_uid='.$this->lang); //.' '.$this->cObj->enableFields($this->tableRelation), // auskommentiert am 15.11.10
+					'user_id='.intval($quizData['qtuid']).' AND pid='.$resPID.' AND sys_language_uid='.$this->lang); //.' '.$this->cObj->enableFields($this->tableRelation), // auskommentiert am 15.11.10
 				$rows = $GLOBALS['TYPO3_DB']->sql_num_rows($res5);
 				if ($rows>0) {
 					while($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res5)){
@@ -2528,7 +2524,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 		// welches Template nehmen???
 		if ($quizData["sendEmailNow"]) {
 			$template_entry = $this->cObj->getSubpart($this->templateCode, "###TEMPLATE_EMAIL_ALLANSWERS###");
-		} else if ($quizData["cmd"] == 'allanswers') {
+		} else if ($quizData['cmd'] == 'allanswers') {
 			$template_entry = $this->cObj->getSubpart($this->templateCode, "###TEMPLATE_ALLANSWERS###");
 		} else {
 			$template = $this->cObj->getSubpart($this->templateCode, "###TEMPLATE_NO_MORE###");
@@ -2557,26 +2553,26 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 		
 		$whereUIDs = '';
 		$whereCat='';
-		if ($quizData["qtuid"]) {			// nur beantwortete Fragen anzeigen...
+		if ($quizData['qtuid']) {			// nur beantwortete Fragen anzeigen...
 			$res4 = $GLOBALS['TYPO3_DB']->exec_SELECTquery('qids,cids,fids',
 					$this->tableAnswers,
-					'uid='.intval($quizData["qtuid"]));
+					'uid='.intval($quizData['qtuid']));
 			$rows = $GLOBALS['TYPO3_DB']->sql_num_rows($res4);
 			if ($rows>0) {
 				while($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res4)){
 					$whereUIDs = ' AND uid IN (';
 					if ($this->conf['showAllCorrectAnswers']==2)
-						$whereUIDs .= $row['cids'];
+						$whereUIDs .= preg_replace('/[^0-9,]/','',$row['cids']);
 					else if ($this->conf['showAllCorrectAnswers']==3)
-						$whereUIDs .= $row['fids'];
-					else $whereUIDs .= $row['qids'];
+						$whereUIDs .= preg_replace('/[^0-9,]/','',$row['fids']);
+					else $whereUIDs .= preg_replace('/[^0-9,]/','',$row['qids']);
 					$whereUIDs .= ')';
 				}
 			}
 		} elseif ($this->conf['startCategory']) {		// oder nur Fragen mit Kat.
 			$whereCat = ' AND category='.intval($this->conf['startCategory']);
 		} elseif ( $this->conf['onlyCategories'] ) {
-			$whereCat = " AND category IN (".addslashes($this->conf['onlyCategories']).")";
+			$whereCat = " AND category IN (".preg_replace('/[^0-9,]/','',$this->conf['onlyCategories']).")";
 		}
 		
 		$sortBy = 'sorting';
@@ -2605,7 +2601,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 			while($rowA = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res5)){
 				$questionUID = $rowA['uid'];
 				
-				if ($this->conf['advancedStatistics'] && $quizData["qtuid"] && !is_array($userHash[$questionUID]))
+				if ($this->conf['advancedStatistics'] && $quizData['qtuid'] && !is_array($userHash[$questionUID]))
 					continue;				// vorher nicht angezeigte Fragen auch jetzt nicht anzeigen! 
 				
 				$questionNumber++;
@@ -2726,7 +2722,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 						$markerArrayS = array_merge($markerArrayS, $this->helperObj->setAnswerVars($answerNumber, $rowA['qtype']));
 						$markerArrayS["###VAR_QA_NR###"] = $answerNumber;
 						
-					//	if ($this->conf['advancedStatistics'] and $quizData["qtuid"]) {
+					//	if ($this->conf['advancedStatistics'] and $quizData['qtuid']) {
 							$tempAnswer = '';
 							$markerArrayS['###VAR_QUESTION_ANSWER###'] = $rowA['answer'.$answerNumber];
 							if ( !$this->conf['dontShowPoints'] && $rowA['qtype']<5 ) {	// keine Punkte bei Sternen
@@ -2765,7 +2761,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 								}
 							}
 							
-							if ($this->conf['advancedStatistics'] && $quizData["qtuid"] && $userHash[$questionUID]['c'.$answerNumber] && 
+							if ($this->conf['advancedStatistics'] && $quizData['qtuid'] && $userHash[$questionUID]['c'.$answerNumber] && 
 									( ($rowA['qtype']==3 && (!$rowA['answer'.$answerNumber] || strtolower($rowA['answer'.$answerNumber])==strtolower($userHash[$questionUID]['textinput']))) ||
 									  ($rowA['qtype']!=3 && $rowA['correct'.$answerNumber]) || ($rowA['qtype']==5) )) {
 								if ($rowA['qtype']==5 || !$rowA['answer'.$answerNumber]) {
@@ -2777,11 +2773,11 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 									$markerArrayS["###VAR_QUESTION_ANSWER###"] = $textinput;
 								}
 								$tempAnswer = $this->cObj->substituteMarkerArray($template_okok, $markerArrayS);
-							} else if ($this->conf['advancedStatistics'] and $quizData["qtuid"] && $userHash[$questionUID]['c'.$answerNumber]) {											
+							} else if ($this->conf['advancedStatistics'] and $quizData['qtuid'] && $userHash[$questionUID]['c'.$answerNumber]) {											
 								$tempAnswer = $this->cObj->substituteMarkerArray($template_notok, $markerArrayS);
 							} else if ($rowA['correct'.$answerNumber] || ($rowA['qtype']==3 && $rowA['answer1'])) {
 								$tempAnswer = $this->cObj->substituteMarkerArray($template_oknot, $markerArrayS);
-								if ($this->conf['advancedStatistics'] && $quizData["qtuid"] && $rowA['qtype']==3 && ($userHash[$questionUID]['textinput'] || $userHash[$questionUID]['textinput']==='0')) {		// falsche antwort und richtige antwort ausgeben; hier gibt es 2 antworten !!!
+								if ($this->conf['advancedStatistics'] && $quizData['qtuid'] && $rowA['qtype']==3 && ($userHash[$questionUID]['textinput'] || $userHash[$questionUID]['textinput']==='0')) {		// falsche antwort und richtige antwort ausgeben; hier gibt es 2 antworten !!!
 									$textinput = str_replace('\r\n', "<br />", htmlspecialchars($userHash[$questionUID]['textinput']));
 									$markerArrayS["###VAR_QUESTION_ANSWER###"] = $textinput;		// falschen werte berechnen...
 								/*	if ($statHash[$questionUID]['c1']+$statHash[$questionUID]['c2']+$statHash[$questionUID]['c3']+$statHash[$questionUID]['c4']+$statHash[$questionUID]['c5'] > 0)
@@ -2825,7 +2821,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 					$temp_output = '';
 				}
 				
-				if ($this->conf['advancedStatistics'] and $quizData["qtuid"]) {
+				if ($this->conf['advancedStatistics'] and $quizData['qtuid']) {
 					$markerArrayS['###RESULT_QUESTION_POINTS###'] = $this->pi_getLL('result_question_points','result_question_points');
 					$markerArrayS['###VAR_POINTS###'] = $userHash[$questionUID]['points'];
 				}
@@ -2947,7 +2943,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 			//$orderBy='sum('.$orderBy.')';
 			$select = 'count(*) AS anzahl, sum(p_or_a) AS p_or_a, sum(p_max) AS p_max, sum(o_max) AS o_max, sum(percent)/count(*) AS percent, sum(o_percent)/count(*) AS o_percent';
 			if ($groupBy=='fe_uid') {
-				$select .= ', fe_uid, fe_users.'.addslashes($this->conf['fe_usersName']).' AS name, fe_users.email AS email, fe_users.www AS homepage';
+				$select .= ', fe_uid, fe_users.'.$GLOBALS['TYPO3_DB']->quoteStr($this->conf['fe_usersName'], 'fe_users').' AS name, fe_users.email AS email, fe_users.www AS homepage';
 				$from = ',fe_users';
 				$where = ' AND fe_uid>0 AND fe_uid=fe_users.uid';
 			} else {
@@ -2983,7 +2979,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 					$aPid = $row['pid'];
 				}
 				
-				if (!$groupBy && $row['uid'] == $quizData["qtuid"]) {		// aktueller eintrag
+				if (!$groupBy && $row['uid'] == $quizData['qtuid']) {		// aktueller eintrag
 					$markerArrayS["###EVEN_ODD###"] = $markerArrayS["###MY_EVEN_ODD###"] = '-act';
 				} else {
 					if (is_array($this->conf['myVars.']['list.'])) {
@@ -3113,7 +3109,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 			$withStartCat=true;
 			$answeredP = ' AND category='.intval($this->conf['startCategory']);
 		} else if ( $this->conf['onlyCategories'] ) {
-			$answeredP = " AND category IN (".addslashes($this->conf['onlyCategories']).")";
+			$answeredP = " AND category IN (".preg_replace('/[^0-9,]/','',$this->conf['onlyCategories']).")";
 		}
 		
 		$template = $this->cObj->getSubpart($this->templateCode, "###TEMPLATE_POLLRESULT###");
@@ -3283,7 +3279,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 			if ($this->conf['startCategory']) {
 				$answeredP = ' AND category='.intval($this->conf['startCategory']);
 			} else if ( $this->conf['onlyCategories'] ) {
-				$answeredP = " AND category IN (".addslashes($this->conf['onlyCategories']).")";
+				$answeredP = " AND category IN (".preg_replace('/[^0-9,]/','',$this->conf['onlyCategories']).")";
 			}
 			// poll question (only latest question!)
 			$queryResult5 = $GLOBALS['TYPO3_DB']->exec_SELECTquery('uid',

@@ -216,7 +216,7 @@ class tx_myquizpoll_helper {
 	function getPageTitle($uid) {
 		if ($uid == $GLOBALS["TSFE"]->id) return $GLOBALS["TSFE"]->page['title'];
 		$OLmode = ($GLOBALS['TSFE']->config['config']['sys_language_mode'] == 'strict' ? 'hideNonTranslated' : '');	// oder $GLOBALS['TSFE']->sys_language_mode;
-		$rowsP = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows('*', 'pages', 'uid=' . $uid);
+		$rowsP = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows('*', 'pages', 'uid=' . intval($uid));
 		$rowP = $rowsP[0];
 		// TODO: get the translated record if the content language is not the default language. Funktioniert nicht!!!
 		if ($this->lang > 0)
@@ -231,7 +231,7 @@ class tx_myquizpoll_helper {
 		$maxPoints = 0;
 		$noQuestions = 0;
 		$pages = 0;
-		$whereCat = ( $this->settings['onlyCategories'] ) ? " AND category IN (".addslashes($this->settings['onlyCategories']).")" : '';
+		$whereCat = ( $this->settings['onlyCategories'] ) ? " AND category IN (".preg_replace('/[^0-9,]/','',$this->settings['onlyCategories']).")" : '';
 				
 		// Get all questions from the database
 		$res5 = $GLOBALS['TYPO3_DB']->exec_SELECTquery('*',
