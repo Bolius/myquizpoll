@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2011 Kurt Gusbeth <info@myquizandpoll.de>
+*  (c) 2013 Kurt Gusbeth <info@myquizandpoll.de>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -114,8 +114,10 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 		$listPID  = ($this->conf['listPID'])  ? intval($this->conf['listPID'])  : $GLOBALS['TSFE']->id;	// oder $finalPID;
 		$startPID = intval($this->conf['startPID']);
 		
-		if ($this->conf['answerChoiceMax'])					// antworten pro fragen
+		if ($this->conf['answerChoiceMax'])				// antworten pro fragen
 			$this->answerChoiceMax = intval($this->conf['answerChoiceMax']);
+		if (!$this->conf['myVars.']['separator'])		// separator bei den myVars
+			 $this->conf['myVars.']['separator'] = ',';
 		
 		mt_srand(hexdec(substr(md5(microtime()), -8)) & 0x7fffffff);  // Seed random number generator
 		//$this->local_cObj = t3lib_div::makeInstance("tslib_cObj");	// Local cObj
@@ -249,7 +251,6 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 		$whereAnswered = '';	// questions that have been allready answered (UIDs)
 		$whereSkipped = '';		// questions that have been skipped (UIDs)
 		$content = '';			// content to be shown
-		if ($this->conf['debug']==2 && !$quizData['debugMode']) $this->conf['debug']=0;
 		
 		$this->helperObj = t3lib_div::makeInstance('tx_myquizpoll_helper',
 			$thePID, 
@@ -1601,7 +1602,6 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 			if ( $numOfQuestions > 0 ) {		// any questions out there???
 				
 				// Start des Output
-//				$content .= "<form action=\"".$this->pi_getPageLink($GLOBALS['TSFE']->id)."\" method=\"post\" name=\"myquiz\">\n";  // old, deprecated since 0.1.8
 				$lastUID = 0;		// remember the last question ID
 				$pageTimeCat = 0;	// time per page from a category
 				$questTillNow = 0;	// no. of questions answered till now
@@ -1916,7 +1916,6 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 					$markerArrayP["###HIDDENFIELDS###"] .= '  <input type="hidden" name="'.$this->prefixId.'[back]" value="'.$back.'" />';
 					$markerArrayP["###HIDDENFIELDS###"] .= '  <input type="hidden" name="'.$this->prefixId.'[back-hit]" value="0" />';
 					$markerArray['###BACK_STYLE###'] = ($seite == 1) ? ' style="display:none;"' : '';
-					//	'<input type="button" name="'.$this->prefixId.'[back-button]" value="'.$this->pi_getLL('back','back').'" class="tx_myquizpoll_pi1-back" onclick="quizback(this.form);" />';
 				} else $markerArray['###BACK_STYLE###'] = ' style="display:none;"';
 				
 				// Submit/User-Data Template
@@ -1931,7 +1930,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 				} else if (!($answeredQuestions==$lastUID && $this->conf["isPoll"])) {
 					$template = $this->cObj->getSubpart($this->templateCode, "###TEMPLATE_SUBMIT###");
 					$markerArrayP["###REF_SUBMIT_FIELDS###"] = $this->cObj->substituteMarkerArray($template, $markerArray);
-					$markerArrayP["###HIDDENFIELDS###"] .= '  <input type="hidden" name="name" value="'.$markerArray["###DEFAULT_NAME###"].'" /> ';	// KGB: wozu ???
+					$markerArrayP["###HIDDENFIELDS###"] .= '  <input type="hidden" name="name" value="'.$markerArray["###DEFAULT_NAME###"].'" /> ';	// fürs Template?
 					$markerArrayP["###HIDDENFIELDS###"] .= '  <input type="hidden" name="'.$this->prefixId.'[name]" value="'.htmlspecialchars($quizData["name"]).'" />';
 					$markerArrayP["###HIDDENFIELDS###"] .= '  <input type="hidden" name="'.$this->prefixId.'[email]" value="'.htmlspecialchars($quizData["email"]).'" />';
 					$markerArrayP["###HIDDENFIELDS###"] .= '  <input type="hidden" name="'.$this->prefixId.'[homepage]" value="'.htmlspecialchars($quizData["homepage"]).'" />';
@@ -1959,8 +1958,6 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
   <input type="hidden" name="'.$this->prefixId.'[joker2]" value="0" />
   <input type="hidden" name="'.$this->prefixId.'[joker3]" value="0" />';
 				}
-				$markerArrayP["###HIDDENFIELDS###"] .= ($quizData['debugMode']) ?
-  '  <input type="hidden" name="'.$this->prefixId.'[debugMode]" value="'.htmlspecialchars($quizData['debugMode']).'" />' : '';
  				
 				$markerArrayP["###MAX_PAGES###"] = $this->helperObj->getMaxPages();
 				$markerArrayP["###PAGE###"] = $this->helperObj->getPage($questTillNow);
@@ -2020,17 +2017,13 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 			 */
 			 
 			$template = $this->cObj->getSubpart($this->templateCode, "###TEMPLATE_NEXT###");
+			$markerArray["###HIDDENFIELDS###"] = '';
 			// back-button
 			if ($this->conf['allowBack'] && $this->conf['pageQuestions'] && $quizData['qtuid']) {
-				$markerArray["###HIDDENFIELDS###"] = '';
 				$markerArray['###BACK_STYLE###'] = '';
-//				<input type="button" name="'.$this->prefixId.'[back-button]" value="'.$this->pi_getLL('back','back').'" class="tx_myquizpoll_pi1-back"
-//	onclick="this.form.elements[\'tx_myquizpoll_pi1[back]\'].value = parseInt(this.form.elements[\'tx_myquizpoll_pi1[back]\'].value) + 1;this.form.elements[\'tx_myquizpoll_pi1[back-hit]\'].value = 1;this.form.submit();" />';
 				$markerArray["###HIDDENFIELDS###"] .= '<input type="hidden" name="'.$this->prefixId.'[back]" value="'.$back.'" />
 	<input type="hidden" name="'.$this->prefixId.'[back-hit]" value="0" />';
 			} else $markerArray['###BACK_STYLE###'] = ' style="display:none;"';
-			$markerArray["###HIDDENFIELDS###"] .= ($quizData['debugMode']) ? 
-	'  <input type="hidden" name="'.$this->prefixId.'[debugMode]" value="'.htmlspecialchars($quizData['debugMode']).'" />' : '';
  			if ($template == '')	// if it is not in the template
 				$template = $this->cObj->getSubpart($this->origTemplateCode, "###TEMPLATE_NEXT###");
 			$markerArrayP["###REF_NEXT###"] = $this->cObj->substituteMarkerArray($template, $markerArray);	// instead $content
@@ -2121,10 +2114,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 		
 		if ( $this->conf['isPoll'] && $quizData['cmd']!='list' ) {	// show poll result link?
   			$template = $this->cObj->getSubpart($this->templateCode, "###TEMPLATE_POLLRESULT_URL###");
-  			//if ($questionPage || $answerPage)
 				$markerArrayP["###REF_POLLRESULT_URL###"] = $this->cObj->substituteMarkerArray($template, $markerArray);
-			//else
-			//	$content .= $this->cObj->substituteMarkerArray($template, $markerArray);
   		}
 
 		
@@ -2364,12 +2354,8 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 			}
 			
 			if ($this->conf['showAllCorrectAnswers'] && !$this->conf['isPoll']) {		// show all answers...
-				/*if ($this->conf['finishAfterQuestions'])
-					$fragen = intval($this->conf['finishAfterQuestions']);
-				else
-					$fragen = $this->helperObj->getQuestionsNo();*/
 				$quizData['sendEmailNow'] = true;			// noetig um zu wissen, welches Template genommen werden soll
-				$markerArrayP["###REF_EMAIL_ALLANSWERS###"] = $this->showAllAnswers( $quizData, $thePID,$resPID, true, 0 ); // 24.1.10: 0 statt $fragen
+				$markerArrayP["###REF_EMAIL_ALLANSWERS###"] = $this->showAllAnswers( $quizData, $thePID,$resPID, true, 0 );
 			} else {
 				$markerArrayP["###REF_EMAIL_ALLANSWERS###"] = '';
 			}
@@ -2984,7 +2970,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 				} else {
 					if (is_array($this->conf['myVars.']['list.'])) {
 						foreach($this->conf['myVars.']['list.'] as $key => $value) {
-							$myQArray = explode(',', $value);
+							$myQArray = explode($this->conf['myVars.']['separator'], $value);
 							$myKey = ($nr)%count($myQArray);
 							$markerArrayS["###MY_".strtoupper($key)."###"] = $myQArray[$myKey];
 						}
@@ -3199,7 +3185,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 		  if ($row['answer'.$nr] || $row['answer'.$nr]==='0') {
 			if (is_array($this->conf['myVars.']['list.'])) {
 				foreach($this->conf['myVars.']['list.'] as $key => $value) {
-					$myQArray = explode(',', $value);
+					$myQArray = explode($this->conf['myVars.']['separator'], $value);
 					$myKey = ($nr-1)%count($myQArray);
 					$markerArrayS["###MY_".strtoupper($key)."###"] = $myQArray[$myKey];
 				}

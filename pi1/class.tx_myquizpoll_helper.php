@@ -2,7 +2,7 @@
 /***************************************************************
 *  Copyright notice
 *
-*  (c) 2011 Kurt Gusbeth <info@myquizandpoll.de>
+*  (c) 2013 Kurt Gusbeth <info@myquizandpoll.de>
 *  All rights reserved
 *
 *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -515,7 +515,7 @@ class tx_myquizpoll_helper {
 		if (is_array($this->settings['myVars.']['questions.'])) {
 			foreach ($this->settings['myVars.']['questions.'] as $key => $value) {
 				if ($value) {
-					$myQArray = explode(',', $value);
+					$myQArray = explode($this->settings['myVars.']['separator'], $value);
 					$myKey = ($nr-1)%count($myQArray);
 					$result["###MY_".strtoupper($key)."###"] = $myQArray[$myKey];
 					//if ($this->writeDevLog) t3lib_div::devLog("MY question: $key=".$myQArray[$myKey]." ($value)", 'myquizpoll', 0);
@@ -537,7 +537,7 @@ class tx_myquizpoll_helper {
 		if (is_array($this->settings['myVars.']['answers.']) && ($qtype != 2 || $nr == 1)) {
 			foreach($this->settings['myVars.']['answers.'] as $key => $value) {
 				if ($value) {
-					$myAArray = explode(',', $value);
+					$myAArray = explode($this->settings['myVars.']['separator'], $value);
 					$myKey = ($nr-1)%count($myAArray);
 					$result["###MY_".strtoupper($key)."###"] = $myAArray[$myKey];
 					//if ($this->writeDevLog) t3lib_div::devLog("MY answer: $key=".$myAArray[$myKey]." ($value)", 'myquizpoll', 0);
