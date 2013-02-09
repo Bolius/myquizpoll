@@ -6,7 +6,7 @@
 <h2>jQuery Poll EXAMPLE TEMPLATE</h2>
 <p>You need jQuery for this example. This example uses the extension t3jquery. 
 Furthermore you need jqPlot from here:
-http://www.jqplot.com/tests/pie-donut-charts.php
+http://www.jqplot.com/tests/rotated-tick-labels.php
 Download it and copy it to your fileadmin-folder.
 Test it with this TypoScript:</p>
 <pre>
@@ -14,7 +14,7 @@ plugin.tx_myquizpoll_pi1 {
 	isPoll = 1
 	useCookiesInDays = 7
 	tableAnswers = tx_myquizpoll_voting
-	templateFile = EXT:myquizpoll/examples/template_poll_jquery_pie.html
+	templateFile = EXT:myquizpoll/examples/template_poll_jquery_bar.html
 	myVars.separator = |
 	myVars.answers {
 		input_id = 1
@@ -29,8 +29,11 @@ page.includeCSS {
 }
 page.includeJS {
   jqplot = fileadmin/template/jqplot/jquery.jqplot.min.js
-  pie = fileadmin/template/jqplot/plugins/jqplot.pieRenderer.min.js
-  donut = fileadmin/template/jqplot/plugins/jqplot.donutRenderer.min.js
+  dateaxis = fileadmin/template/jqplot/plugins/jqplot.dateAxisRenderer.min.js
+  canvastext = fileadmin/template/jqplot/plugins/jqplot.canvasTextRenderer.min.js
+  canvasaxis = fileadmin/template/jqplot/plugins/jqplot.canvasAxisTickRenderer.min.js
+  cataxis = fileadmin/template/jqplot/plugins/jqplot.categoryAxisRenderer.min.js
+  bar = fileadmin/template/jqplot/plugins/jqplot.barRenderer.min.js
 }
 
 // And if you don´t always include jQuery:
@@ -177,33 +180,36 @@ You can use this marker too: ###REF_QR_ANSWER_CORR###
 
 
 <!-- ###TEMPLATE_POLL_SUBMITED### begin -->
-<p class="###PREFIX###-label">###THANK_YOU### ###QUESTION_NAME### ###VAR_QUESTION_NAME###<br />
+<p class="###PREFIX###-label">###THANK_YOU### ###QUESTION_NAME### ###VAR_QUESTION_TITLE###<br />
 ###USER_ANSWER### ###VAR_USER_ANSWER###</p>
 <!-- ###TEMPLATE_POLL_SUBMITED### end -->
 
 
 <!-- ###TEMPLATE_POLLRESULT### begin of "poll result list" -->
-<div id="chart1" style="width:500px;height:300px;">&nbsp;</div>
+<div id="chart1b" style="width:500px;height:400px;">&nbsp;</div>
  
 <script type="text/javascript">
 $(document).ready(function(){
-var data = [
-<!-- ###TEMPLATE_POLLRESULT_ENTRY### begin -->['###VAR_ANSWER### (###VAR_HITS###)', ###VAR_HITS###]###MY_KOMMA### <!-- ###TEMPLATE_POLLRESULT_ENTRY### end -->
+var line1 = [
+<!-- ###TEMPLATE_POLLRESULT_ENTRY### -->['###VAR_ANSWER###', ###VAR_HITS###]###MY_KOMMA### <!-- ###TEMPLATE_POLLRESULT_ENTRY### -->
 ];
-var plot1 = jQuery.jqplot ('chart1', [data], 
-  { 
-    seriesDefaults: {
-      // Make this a pie chart.
-      renderer: jQuery.jqplot.PieRenderer, 
-      rendererOptions: {
-        // Put data labels on the pie slices.
-        // By default, labels show the percentage of the slice.
-        showDataLabels: true
-      }
-    }, 
-    legend: { show:true, location: 'e' }
-  }
-);
+var plot1b = $.jqplot('chart1b', [line1], {
+	    title: '###VAR_QUESTION_TITLE###',
+	    series:[{renderer:$.jqplot.BarRenderer}],
+	    axesDefaults: {
+	        tickRenderer: $.jqplot.CanvasAxisTickRenderer,
+	        tickOptions: {
+	          fontFamily: 'Georgia',
+	          fontSize: '10pt',
+	          angle: -30
+	        }
+	    },
+	    axes: {
+	      xaxis: {
+	        renderer: $.jqplot.CategoryAxisRenderer
+	      }
+	    }
+});
 });
 </script>
 
