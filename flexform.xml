@@ -227,6 +227,18 @@
                             <numIndex index="0">LLL:EXT:myquizpoll/locallang_ff.xml:flexform.sheets.subtleties.sortBy.random</numIndex>
                             <numIndex index="1">random</numIndex>
                         </numIndex>
+						<numIndex index="5" type="array">
+                            <numIndex index="0">sorting DESC</numIndex>
+                            <numIndex index="1">sorting-desc</numIndex>
+                        </numIndex>
+						<numIndex index="6" type="array">
+                            <numIndex index="0">uid DESC</numIndex>
+                            <numIndex index="1">uid-desc</numIndex>
+                        </numIndex>
+						<numIndex index="7" type="array">
+                            <numIndex index="0">title DESC</numIndex>
+                            <numIndex index="1">title-desc</numIndex>
+                        </numIndex>
                     </items>
                 </config>
             </TCEforms>

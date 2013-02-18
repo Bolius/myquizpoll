@@ -15,6 +15,7 @@
 }
 .quizpoll_stat_question {
 	font-style: italic;
+	padding-bottom:3px;
 }
 .quizpoll_stat_answer {
 	color: #1e7b3d;
@@ -65,4 +66,11 @@
 }
 .quizpoll_hidden {
 	color:#888;
+}
+form ol {
+  margin: 0;
+  padding: 0 0 0 30px;
+}
+form ol li {
+  list-style-type: decimal;
 }

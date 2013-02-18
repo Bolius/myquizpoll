@@ -494,8 +494,11 @@ class  tx_myquizpoll_module1 extends t3lib_SCbase {
 		}
 		$foreign_vals = '';
 		$foreign_array = array();
+		$category = intval(t3lib_div::_GP('category'));
+		$categories = array();
 		
 		if ($mode<3 || $mode==4 || $mode==7) {
+			// voting- oder result-Tabelle?
 			$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('count(1)',
 								'tx_myquizpoll_result',
 								'PID='.$id.' AND sys_language_uid='.$lid);
@@ -538,6 +541,16 @@ class  tx_myquizpoll_module1 extends t3lib_SCbase {
 						}
 						$GLOBALS['TYPO3_DB']->sql_free_result($res);
 					}
+				}
+			}
+		} else if ($mode==3) {
+			//read categories from db
+			$resCategory = $GLOBALS['TYPO3_DB']->exec_SELECTquery('uid,name',
+				'tx_myquizpoll_category',
+				'PID='.$id);
+			if ($GLOBALS['TYPO3_DB']->sql_num_rows($resCategory) > 0) {
+				while($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($resCategory)){
+					$categories[$row['uid']] = $row['name'];
 				}
 			}
 		}
@@ -717,6 +730,9 @@ class  tx_myquizpoll_module1 extends t3lib_SCbase {
 			case 3:
 				$head = $LANG->getLL('function3');
 				$content .= '<div align="center"><strong>'.$LANG->getLL('evaluation')."</strong></div><br />\n";
+				if($category>0 && count($categories)>0) {
+					$content .= '<h3>'.$categories[$category].'</h3>';
+				}
 				
 				$ansArray = array();
 				$ansArray[0] = array();
@@ -735,6 +751,10 @@ class  tx_myquizpoll_module1 extends t3lib_SCbase {
 								$ansArray[0][$qid]['votes']++;
 								$votesTotal++;
 							}
+						}
+						/* add textanswers to $ansArray form question type 3: textfield, 5: textarea */
+						if($row['textinput'] != '') {
+							$ansArray[0][$qid]['textinput'][] = $row['textinput'];
 						}
 						$questions.=",$qid";
 					}
@@ -1079,17 +1099,21 @@ class  tx_myquizpoll_module1 extends t3lib_SCbase {
 		}
 		
 		if (($mode==3 || $mode==4) && $questions) {
+			$where = ($category>0) ? ' AND category = '.$category : '';
 			$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('*',
 				'tx_myquizpoll_question',
-				'uid IN ('.$questions.')',	//'PID='.$id.' AND sys_language_uid='.$lid.' AND deleted=0',
+				'uid IN ('.$questions.')'.$where,	//'PID='.$id.' AND sys_language_uid='.$lid.' AND deleted=0',
 				'',
-				'sys_language_uid, sorting',
-				'');
+				'sys_language_uid, sorting');
 			$rows = $GLOBALS['TYPO3_DB']->sql_num_rows($res);
 			if ($rows>0) {
 				while($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)){
 					$uid = intval($row['uid']);
-					$content .= '<p><strong>'.$row['title']."</strong><br />";
+					$content .= '<div class="quizpoll_stat_around"><div class="quizpoll_stat_question"><strong>'.$row['title']."</strong>";
+					if(count($categories)>0 && $category == 0) {
+						$content .= ' ('.$categories[$row['category']].')';
+					}
+					$content .= "</div>\n";
 					foreach ($ansArray as $key => $valArray) {
 						if ($key) {
 							if ($columns[$table]['fno'] && $foreign_array[$key])
@@ -1098,28 +1122,46 @@ class  tx_myquizpoll_module1 extends t3lib_SCbase {
 								$content .= '<br /><i>'.$key.'</i><br />';
 						}
 						$votes = $valArray[$uid]['votes'];
-						for ($i=1; $i<=12; $i++) {
-							if ($valArray[$uid][$i]) {
-								$percent2=round(100*$valArray[$uid][$i]/$votes, 2);
-								$percent0=round($percent2);
-								if ($percent0>0) {
-									$content .= '<img src="'.$path.'percent-l.jpg" alt="'.$percent2.'%" title="'.$percent2.'%" width="'.$percent0.'" height="10" />';
-									$percent0 = 100 - $percent0;
-									$content .= '<img src="'.$path.'percent-r.jpg" alt="'.$percent2.'%" title="'.$percent2.'%" width="'.$percent0.'" height="10" />';
-								} else {
+						if (!($row['qtype']==3 || $row['qtype']==5))
+							for ($i=1; $i<=12; $i++) {
+								if ($valArray[$uid][$i]) {
+									$percent2=round(100*$valArray[$uid][$i]/$votes, 2);
+									$percent0=round($percent2);
+									if ($percent0>0) {
+										$content .= '<img src="'.$path.'percent-l.jpg" alt="'.$percent2.'%" title="'.$percent2.'%" width="'.$percent0.'" height="10" />';
+										$percent0 = 100 - $percent0;
+										$content .= '<img src="'.$path.'percent-r.jpg" alt="'.$percent2.'%" title="'.$percent2.'%" width="'.$percent0.'" height="10" />';
+									} else {
+										$content .= '<img src="'.$this->path.'percent-r.jpg" alt="0%" title="0%" width="100" height="10" />';
+									}
+									$content .= ' <span class="quizpoll_stat_count">'.$valArray[$uid][$i]." ($percent2%) </span>&nbsp;";
+									$content .= $row['answer'.$i]."<br />\n";
+								} else if ($row['answer'.$i]) {
 									$content .= '<img src="'.$this->path.'percent-r.jpg" alt="0%" title="0%" width="100" height="10" />';
+									$content .= ' <span class="quizpoll_stat_count">0 </span>&nbsp;'.$row['answer'.$i]."<br />\n";
 								}
-								$content .= ' <span class="quizpoll_stat_count">'.$valArray[$uid][$i]." ($percent2%) </span>&nbsp;";
-								$content .= $row['answer'.$i]."<br />\n";
-							} else if ($row['answer'.$i]) {
-								$content .= '<img src="'.$this->path.'percent-r.jpg" alt="0%" title="0%" width="100" height="10" />';
-								$content .= ' <span class="quizpoll_stat_count">0 </span>&nbsp;'.$row['answer'.$i]."<br />\n";
 							}
+						/* add textanswers to $ansArray form question type 3: textfield, 5: textarea */
+						$textinput = $valArray[$uid]['textinput'];
+						if(is_array($textinput)) {
+							$content .= '<ol>';
+							foreach($textinput as $key => $value)
+								$content .= '<li class="quizpoll-textinput-answer">'.nl2br(stripcslashes($value))."</li>\n";
+							$content .= '</ol>';
 						}
 					}
-					$content .= "</p>\n";
+					$content .= "</div>\n";
 				}
 				$content .= '<br /><p>'.$LANG->getLL('votesTotal').": $votesTotal</p><br />\n";
+			}
+			//add selectbox for categories
+			if (count($categories) > 0) {
+				$content .= $LANG->getLL('category').': <select name="category">';
+				$content .= '<option value="0">-</option>';
+				foreach ($categories as $catID => $catName){
+					$content .= '<option value="'.$catID.'"'.(($category == $catID) ? ' selected="selected" ' : '' ).'>'.$catName.'</option>';
+				}
+				$content .= '</select><br />';
 			}
 		} else if ($mode<3) {	
 			if ($rowsTotal>$ep) {

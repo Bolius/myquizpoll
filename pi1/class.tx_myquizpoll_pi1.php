@@ -1450,15 +1450,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 					}
 				}
 				$GLOBALS['TYPO3_DB']->sql_free_result($res5);
-				$sortBy = 'sorting';
-				if ( $this->conf['sortBy'] ) {
-					switch ($this->conf['sortBy']) {
-						case "sorting": $sortBy = "sorting"; break;
-						case "uid": $sortBy = "uid"; break;
-						case "title": $sortBy = "title"; break;
-						default: $sortBy = "sorting"; break;
-					}
-				}
+				$sortBy = $this->getSortBy();
 				$questionsArray = array();
 				$questionNumber = 0;
 				if ($where) {
@@ -1502,17 +1494,9 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 				
 			} elseif (!$noQuestions) {
 				// Order questions by & and limit to
-				$sortBy = 'sorting';
 				$limitTo = '';
 				$whereCat = '';
-				if ( $this->conf['sortBy'] ) {
-					switch ($this->conf['sortBy']) {
-						case "sorting": $sortBy = "sorting"; break;
-						case "uid": $sortBy = "uid"; break;
-						case "title": $sortBy = "title"; break;
-						default: $sortBy = "sorting"; break;
-					}
-				}
+				$sortBy = $this->getSortBy();
 				// Limit questions?
 				if ( $this->conf['pageQuestions']>0 && $this->conf['sortBy']!='random' ) {
 					$limitTo = preg_replace('/[^0-9,]/','',$this->conf['pageQuestions']);
@@ -2561,18 +2545,10 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 			$whereCat = " AND category IN (".preg_replace('/[^0-9,]/','',$this->conf['onlyCategories']).")";
 		}
 		
-		$sortBy = 'sorting';
-		if ( $this->conf['sortBy'] ) {
-			switch ($this->conf['sortBy']) {
-				case "uid": $sortBy = "uid"; break;
-				case "title": $sortBy = "title"; break;
-				default: $sortBy = "sorting";
-			}
-		}
-		
 		// Get all questions and answers from the database
 		$questionsArray = array();
 		$questionNumber = 0;
+		$sortBy = $this->getSortBy();
 		$res5 = $GLOBALS['TYPO3_DB']->exec_SELECTquery('*',
 				$this->tableQuestions,
 				'pid IN ('.$thePID.')'.$whereUIDs.$whereCat.' AND sys_language_uid='.$this->lang.' '.$this->cObj->enableFields($this->tableQuestions),
@@ -3240,6 +3216,26 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 			$str = $this->cObj->stdWrap($str, $this->conf["general_stdWrap."]); // statt local_cObj
 		}
 		return $str;
+	}
+	
+	/**
+	 * Returns the sorting order of questions for SQL
+	 *
+	 * @return	string	sort by for SQL
+	 */
+	function getSortBy() {
+		$sortBy = 'sorting';
+		if ( $this->conf['sortBy'] ) {
+			switch ($this->conf['sortBy']) {
+				case "uid": $sortBy = 'uid'; break;
+				case "title": $sortBy = 'title'; break;
+				case "uid-desc": $sortBy = 'uid DESC'; break;
+				case "title": $sortBy = 'title DESC'; break;
+				case "sorting-desc": $sortBy = 'sorting DESC'; break;
+				default: $sortBy = 'sorting';
+			}
+		}
+		return $sortBy;
 	}
 	
 	/**

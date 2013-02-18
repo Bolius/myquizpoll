@@ -63,6 +63,7 @@
 			<label index="answ_skipped">Answered/ skipped questions</label>
 			<label index="answ_corr_false">Correct/false answered questions</label>
 			<label index="last_next_cat">Last/ next category</label>
+			<label index="category">Category</label>
 			<label index="question">Question</label>
 			<label index="answer">Answer</label>
 			<label index="correct_answer">Correct answer?</label>
@@ -132,6 +133,7 @@
 			<label index="answ_skipped">Répondu/ Questions sans réponses</label>
 			<label index="answ_corr_false">Corriger / faux répond aux questions</label>
 			<label index="last_next_cat">Dernier/ cette catégorie suivant</label>
+			<label index="category">Catégorie</label>
 			<label index="question">Question</label>
 			<label index="answer">Réponse</label>
 			<label index="correct_answer">La bonne réponse?</label>
@@ -201,6 +203,7 @@
 			<label index="answ_skipped">Beantwortete/ übersprungene Fragen</label>
 			<label index="answ_corr_false">Richtig/falsch beantw. Fragen</label>
 			<label index="last_next_cat">Letzte/ nächste Kategorie</label>
+			<label index="category">Kategorie</label>
 			<label index="question">Frage</label>
 			<label index="answer">Antwort</label>
 			<label index="correct_answer">Richtige Antwort?</label>
@@ -274,6 +277,7 @@
 			<label index="answ_skipped">Questions / domande saltato</label>
 			<label index="answ_corr_false">Domande vero / falso risponde</label>
 			<label index="last_next_cat">Ultimo / categoria successiva</label>
+			<label index="category">Categoria</label>
 			<label index="question">Questione</label>
 			<label index="answer">Risposta</label>
 			<label index="correct_answer">Risposta corretta?</label>
@@ -343,6 +347,7 @@
 			<label index="answ_skipped">Preguntas / omiten preguntas</label>
 			<label index="answ_corr_false">Verdadero / falso respondió</label>
 			<label index="last_next_cat">Última / siguiente categoría</label>
+			<label index="category">Categoría</label>
 			<label index="question">Cuestión</label>
 			<label index="answer">Respuesta</label>
 			<label index="correct_answer">Respuesta correcta?</label>
@@ -430,6 +435,7 @@
 			<label index="answ_skipped">Întrebări / omit întrebări</label>
 			<label index="answ_corr_false">Adevărat / fals a răspuns întrebărilor</label>
 			<label index="last_next_cat">Ultima / următoarea categorie</label>
+			<label index="category">Categorie</label>
 			<label index="question">Întrebare</label>
 			<label index="answer">Răspuns</label>
 			<label index="correct_answer">Răspuns corect?</label>
