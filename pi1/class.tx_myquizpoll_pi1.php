@@ -1822,7 +1822,12 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 							
 							$thisCat = $row['category'.$currentValue];
 							if ($this->catArray[$thisCat]) $markerArrayQ['###VAR_QA_CATEGORY###'] = $this->catArray[$thisCat]['name'];
-							if ($row['qtype'] < 3) $answer_content .= $input_label1.$answer_choice.$input_label2;
+							if ($row['qtype'] < 3) {
+								if ($markerArrayQ["###MY_INPUT_LABEL###"]==2)
+									$answer_content = $input_label1.$answer_content.$answer_choice.$input_label2;
+								else
+									$answer_content .= $input_label1.$answer_choice.$input_label2;
+							}
 							if ($row['qtype'] == 2) {
 								$answer_content .= "</option>\n";
 								$markerArrayQ["###VAR_QUESTION_ANSWER###"] .= $this->cObj->substituteMarkerArray($answer_content, $markerArrayQ);
