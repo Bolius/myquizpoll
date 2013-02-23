@@ -201,10 +201,18 @@ plugin.tx_myquizpoll_pi1 {
 	# Your own variables for all kind of lists. See manual. This are examples.
 	myVars {
 		separator = ,
-		questions.eo_align = -right,-left
 		answers.input_id = 0
 		answers.input_label = 0
+		answers.input_radio =
+		answers.input_checkbox =
+		answers.input_text =
+		answers.input_area =
+		answers.input_wrap =
+		answers.select =
+		answers.option =
+		questions.eo_align = -right,-left
 		list.even_odd = -odd,-even
+		page.name =
 	}
 	
 	# Value for ###QUIZ_NAME###

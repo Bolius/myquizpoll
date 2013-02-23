@@ -1655,8 +1655,10 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 					}
 					$markerArray["###REF_QUESTION_ANSWER###"] = '';
 					if ($row['qtype'] == 2) {
-						$markerArrayQ["###VAR_QUESTION_ANSWER###"] = '<select name="tx_myquizpoll_pi1[answer'.$questionNumber.']" ###MY_SELECT###>'."\n"; //  class="'.$this->prefixId.'-answer"
-					} 
+						$input_id = ($this->conf['myVars.']['answers.']['input_id']) ? ' id="answer'.$questionNumber.'"' : '';
+						$markerArrayQ["###VAR_QUESTION_ANSWER###"] = '<select name="tx_myquizpoll_pi1[answer'.$questionNumber.
+							']" ###MY_SELECT###'.$input_id.'>'."\n"; //  class="'.$this->prefixId.'-answer"
+					}
 					
 					// my Variables of questions
 					$markerArray["###MY_SELECT###"] = '';
@@ -1749,7 +1751,13 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 							// Questtion type
 							if ($row['qtype'] == 1) {	// radio-button
 								if ($markerArrayQ["###MY_INPUT_ID###"]) $input_id = 'id="answer'.$questionNumber.'_'.$answerNumber.'"';
-								if ($markerArrayQ["###MY_INPUT_LABEL###"]) { $input_label1 = '<label for="answer'.$questionNumber.'_'.$answerNumber.'">'; $input_label2 = '</label>'; }
+								if ($markerArrayQ["###MY_INPUT_LABEL###"]) {
+									if ($markerArrayQ["###MY_INPUT_LABEL###"]==3) $class_label = ' class="radio"';
+									elseif ($markerArrayQ["###MY_INPUT_LABEL###"]==4) $class_label = ' class="radio inline"';
+									else $class_label = '';
+									$input_label1 = '<label for="answer'.$questionNumber.'_'.$answerNumber.'"'.$class_label.'>';
+									$input_label2 = '</label>';
+								}
 								$answer_content = '<input type="radio" name="tx_myquizpoll_pi1[answer'.$questionNumber.']" value="'.$currentValue.'" '.$input_id.' ###MY_INPUT_RADIO###';
 								if (is_array($oldRelData[$quid]) && $oldRelData[$quid]['checked'.$currentValue]) $answer_content .= ' checked="checked"';
 								$answer_content .= ' /> ';
@@ -1791,13 +1799,22 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 								$answer_content = '<textarea name="tx_myquizpoll_pi1[answer'.$questionNumber.']" '.$input_id.' ###MY_INPUT_AREA###>'.$value.'</textarea> ';
 							} else if ($row['qtype'] == 7) {	// star-rating
 								if ($markerArrayQ["###MY_INPUT_ID###"]) $input_id = 'id="answer'.$questionNumber.'_'.$answerNumber.'"';
-								if ($markerArrayQ["###MY_INPUT_LABEL###"]) { $input_label1 = '<label for="answer'.$questionNumber.'_'.$answerNumber.'">'; $input_label2 = '</label>'; }
+								if ($markerArrayQ["###MY_INPUT_LABEL###"]) {
+									$input_label1 = '<label for="answer'.$questionNumber.'_'.$answerNumber.'">';
+									$input_label2 = '</label>';
+								}
 								$answer_content = '<input type="radio" class="star" name="tx_myquizpoll_pi1[answer'.$questionNumber.']" value="'.$currentValue.'" '.$input_id;
 								if (is_array($oldRelData[$quid]) && $oldRelData[$quid]['checked'.$currentValue]) $answer_content .= ' checked="checked"';
 								$answer_content .= ' title="'.$answer_choice.'" /> ';
 							} else {	// checkbox
 								if ($markerArrayQ["###MY_INPUT_ID###"]) $input_id = 'id="answer'.$questionNumber.'_'.$answerNumber.'"';
-								if ($markerArrayQ["###MY_INPUT_LABEL###"]) { $input_label1 = '<label for="answer'.$questionNumber.'_'.$answerNumber.'">'; $input_label2 = '</label>'; }
+								if ($markerArrayQ["###MY_INPUT_LABEL###"]) {
+									if ($markerArrayQ["###MY_INPUT_LABEL###"]==3) $class_label = ' class="checkbox"';
+									elseif ($markerArrayQ["###MY_INPUT_LABEL###"]==4) $class_label = ' class="checkbox inline"';
+									else $class_label = '';
+									$input_label1 = '<label for="answer'.$questionNumber.'_'.$answerNumber.'"'.$class_label.'>';
+									$input_label2 = '</label>';
+								}
 								$answer_content = '<input type="checkbox" name="tx_myquizpoll_pi1[answer'.$questionNumber.'_'.$currentValue.']" value="'.$currentValue.'" '.$input_id.' ###MY_INPUT_CHECKBOX###';
 								if (is_array($oldRelData[$quid]) && $oldRelData[$quid]['checked'.$currentValue]) $answer_content .= ' checked="checked"';
 								$answer_content .= ' /> ';
@@ -1805,7 +1822,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 							
 							if (!$this->conf['dontShowPoints'] && !$this->conf['isPoll'] && $row['qtype']<5) {
 								$tmpPoints = 0;
-								if ($this->conf['noNegativePoints']<3 && $answerPointsBool)	// das ganze Verhalten am 21.01.10 geaendert...
+								if ($this->conf['noNegativePoints']<3 && $answerPointsBool)
 									$tmpPoints = intval($row['points'.$currentValue]);
 								if ($tmpPoints>0)
 									$row['correct'.$currentValue] = true;		// ACHTUNG: falls Punkte zu einer Antwort gesetzt sind, dann wird die Antwort als RICHTIG bewertet!
@@ -1823,7 +1840,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 							$thisCat = $row['category'.$currentValue];
 							if ($this->catArray[$thisCat]) $markerArrayQ['###VAR_QA_CATEGORY###'] = $this->catArray[$thisCat]['name'];
 							if ($row['qtype'] < 3) {
-								if ($markerArrayQ["###MY_INPUT_LABEL###"]==2)
+								if ($markerArrayQ["###MY_INPUT_LABEL###"] > 1)
 									$answer_content = $input_label1.$answer_content.$answer_choice.$input_label2;
 								else
 									$answer_content .= $input_label1.$answer_choice.$input_label2;
