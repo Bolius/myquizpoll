@@ -495,6 +495,7 @@ class  tx_myquizpoll_module1 extends t3lib_SCbase {
 		$foreign_vals = '';
 		$foreign_array = array();
 		$category = intval(t3lib_div::_GP('category'));
+		$selectOnly = t3lib_div::_GP('selectonly');
 		$categories = array();
 		
 		if ($mode<3 || $mode==4 || $mode==7) {
@@ -730,16 +731,106 @@ class  tx_myquizpoll_module1 extends t3lib_SCbase {
 			case 3:
 				$head = $LANG->getLL('function3');
 				$content .= '<div align="center"><strong>'.$LANG->getLL('evaluation')."</strong></div><br />\n";
+				$whereRel = '';
 				if($category>0 && count($categories)>0) {
-					$content .= '<h3>'.$categories[$category].'</h3>';
+					$content .= '<h3>'.$LANG->getLL('category').': '.$categories[$category].'</h3>';
+					$whereRel = ' AND quest.category='.$category;
 				}
+				
+				/* user-select - begin */
+				$where = '';
+				$selectAnswers = array();
+				$tmpArray = explode('u', $selectOnly);
+				foreach ($tmpArray as $value) {
+					preg_match('/q(\d+)a(\d+)e/', $value, $matches);
+					if ($matches[2])
+						$selectAnswers[intval($matches[1])][] = intval($matches[2]);
+				}
+				
+				if(count($selectAnswers)>0) {
+					// return selection: Fragen und Antworten merken
+					$questionsArray = array();
+					$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('*',
+						'tx_myquizpoll_question',
+						'PID='.$id.' AND sys_language_uid='.$lid
+					);
+					$rows = $GLOBALS['TYPO3_DB']->sql_num_rows($res);
+					if ($rows>0) {
+						while($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)){
+							$questionsArray[$row['uid']]['title'] = $row['title'];
+							$i = 1;
+							while($i <= 12) {
+								if($row['answer'.$i] != '')
+									$questionsArray[$row['uid']]['answer'.$i] = $row['answer'.$i];
+								$i++;
+							}
+						}
+					}
+					
+					$content .= '<h4>'.$LANG->getLL('only_select').':</h4>';
+					$content .= '<p>';
+					foreach($selectAnswers as $questionId => $answerArray) {
+						foreach($answerArray as $answerNumber) {
+							$content .= $questionsArray[$questionId]['title'].': '.$questionsArray[$questionId]['answer'.$answerNumber].' <br />';
+						}
+					}
+					$content .= "</p><br />\n";
+					
+					// all answers with correct id answer
+					foreach($selectAnswers as $questionId => $answerArray) {
+						foreach($answerArray as $answerNumber) 
+							$where .= '(question_id = '.$questionId.' AND checked'.$answerNumber.' = 1) OR ';
+					}
+					$where = '('.substr($where, 0, (strlen($where)-3)).')';
+					$answerArray = array();
+					$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('*',
+						'tx_myquizpoll_relation',
+						'PID='.$id.' AND '.$where
+						);
+					$rows = $GLOBALS['TYPO3_DB']->sql_num_rows($res);
+					if ($rows>0) {
+						// array with userid, question id and number of answer
+						while($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)){
+							$i = 1;
+							if (!is_array($answerArray[$row['user_id']]))
+								$answerArray[$row['user_id']] = array();
+							if (!is_array($answerArray[$row['user_id']][$row['question_id']]))
+								$answerArray[$row['user_id']][$row['question_id']] = array();
+							while($i <= 12) {
+								// Problem: funktioniert nur bei Radio-Buttons
+								if($row['checked'.$i] == 1)
+									$answerArray[$row['user_id']][$row['question_id']][$i] = 1;
+								$i++;
+							}
+						}
+					}
+					// only select users where whole selection true
+					$userIds = array();
+					foreach($answerArray as $userId => $array) {
+						$check = true;
+						foreach($selectAnswers as $questionId => $arraySelectAnswers) {
+							$checkA = false;
+							foreach($arraySelectAnswers as $answerNumber) {
+								if($array[$questionId][$answerNumber]==1)
+									$checkA = true;
+							}
+							if(!$checkA)
+								$check = false;
+								
+						}
+						if($check)
+							$userIds[] = $userId;
+					}
+					if (count($userIds)>0) $whereRel .= ' AND rel.user_id IN ('.implode(',',$userIds).')';					
+				}
+				/* user-select - end */
 				
 				$ansArray = array();
 				$ansArray[0] = array();
 				$votesTotal = 0;
-				$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('*',
-					'tx_myquizpoll_relation',
-					'PID='.$id.' AND sys_language_uid='.$lid);
+				$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('rel.*',
+					'tx_myquizpoll_relation rel, tx_myquizpoll_question quest',
+					'rel.PID='.$id.' AND rel.sys_language_uid='.$lid.' AND rel.question_id=quest.uid '.$whereRel);
 				$rows = $GLOBALS['TYPO3_DB']->sql_num_rows($res);
 				if ($rows>0) {							// DB entries found?
 					while($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)){
@@ -1122,7 +1213,7 @@ class  tx_myquizpoll_module1 extends t3lib_SCbase {
 								$content .= '<br /><i>'.$key.'</i><br />';
 						}
 						$votes = $valArray[$uid]['votes'];
-						if (!($row['qtype']==3 || $row['qtype']==5))
+						if (!($row['qtype']==3 || $row['qtype']==5)) {
 							for ($i=1; $i<=12; $i++) {
 								if ($valArray[$uid][$i]) {
 									$percent2=round(100*$valArray[$uid][$i]/$votes, 2);
@@ -1135,12 +1226,18 @@ class  tx_myquizpoll_module1 extends t3lib_SCbase {
 										$content .= '<img src="'.$this->path.'percent-r.jpg" alt="0%" title="0%" width="100" height="10" />';
 									}
 									$content .= ' <span class="quizpoll_stat_count">'.$valArray[$uid][$i]." ($percent2%) </span>&nbsp;";
-									$content .= $row['answer'.$i]."<br />\n";
 								} else if ($row['answer'.$i]) {
 									$content .= '<img src="'.$this->path.'percent-r.jpg" alt="0%" title="0%" width="100" height="10" />';
-									$content .= ' <span class="quizpoll_stat_count">0 </span>&nbsp;'.$row['answer'.$i]."<br />\n";
+									$content .= ' <span class="quizpoll_stat_count">0 </span>&nbsp;';
+								}
+								if ($row['answer'.$i]) {
+									if ($mode==3)
+										$content .= '<a href="javascript:addOnly('.$row['uid'].','.$i.');">'.$row['answer'.$i]."</a><br />\n";
+									else
+										$content .= $row['answer'.$i]."<br />\n";
 								}
 							}
+						}
 						/* add textanswers to $ansArray form question type 3: textfield, 5: textarea */
 						$textinput = $valArray[$uid]['textinput'];
 						if(is_array($textinput)) {
@@ -1152,7 +1249,21 @@ class  tx_myquizpoll_module1 extends t3lib_SCbase {
 					}
 					$content .= "</div>\n";
 				}
-				$content .= '<br /><p>'.$LANG->getLL('votesTotal').": $votesTotal</p><br />\n";
+				$content .= '<br /><p>'.$LANG->getLL('votesTotal').": $votesTotal</p>";
+				if ($mode==3) {
+					$content .= '<p>'.$LANG->getLL('clickAnswers').'</p>
+<input type="hidden" name="selectonly" value="'.$selectOnly.'" />
+<script language="JavaScript">
+  function addOnly(qno,ano) {
+	var temp = document.forms.myquiz.selectonly.value;
+	if (temp.length>0) temp+="u";
+	document.forms.myquiz.selectonly.value=temp+"q"+qno+"a"+ano+"e";
+	document.forms.myquiz.submit();
+	return;
+  }
+</script>';
+				}
+				$content .= "<br />\n";
 			}
 			//add selectbox for categories
 			if (count($categories) > 0) {

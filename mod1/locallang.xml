@@ -53,6 +53,8 @@
 			<label index="hidden">entries have been hidden!</label>
 			<label index="released">entries have been released!</label>
 			<label index="deleted">entries have been deleted!</label>
+			<label index="clickAnswers">Click on answers to display only results with that answers.</label>
+			<label index="only_select">Only questions which are answered like this</label>
 			<label index="number">No.</label>
 			<label index="date">Date</label>
 			<label index="dateformat">Date format</label>
@@ -123,6 +125,8 @@
 			<label index="hidden">entrées ont été cachés!</label>
 			<label index="released">entrées ont été libérés!</label>
 			<label index="deleted">entrées ont été supprimés!</label>
+			<label index="clickAnswers">Click on answers to display only results with that answers.</label>
+			<label index="only_select">Only questions which are answered like this</label>
 			<label index="number">No.</label>
 			<label index="dateformat">Format de date</label>
 			<label index="date">Date</label>
@@ -193,6 +197,8 @@
 			<label index="hidden">Einträge wurden versteckt!</label>
 			<label index="released">Einträge wurden freigegeben!</label>
 			<label index="deleted">Einträge wurden gelöscht!</label>
+			<label index="clickAnswers">Klicke auf Antworten um nur Ergebnisse mit solchen Antworten anzuzeigen.</label>
+			<label index="only_select">Nur Fragen, die wie folgt beantwortet wurden</label>
 			<label index="number">Nr.</label>
 			<label index="date">Datum</label>
 			<label index="dateformat">Datumsformat</label>
@@ -267,6 +273,8 @@
 			<label index="hidden">articoli sono stati nascosti!</label>
 			<label index="released">record sono stati rilasciati!</label>
 			<label index="deleted">Messaggi cancellato!</label>
+			<label index="clickAnswers">Click on answers to display only results with that answers.</label>
+			<label index="only_select">Only questions which are answered like this</label>
 			<label index="number">Numero</label>
 			<label index="date">Data</label>
 			<label index="dateformat">Formato data</label>
@@ -337,6 +345,8 @@
 			<label index="hidden">elementos estaban ocultos!</label>
 			<label index="released">registros han sido puestos en libertad!</label>
 			<label index="deleted">Mensajes borrados!</label>
+			<label index="clickAnswers">Click on answers to display only results with that answers.</label>
+			<label index="only_select">Only questions which are answered like this</label>
 			<label index="number">Número</label>
 			<label index="date">Fecha</label>
 			<label index="dateformat">Formato de fecha</label>
@@ -425,6 +435,8 @@
 			<label index="hidden">elemente au fost ascunse!</label>
 			<label index="released">înregistrări au fost eliberaţi!</label>
 			<label index="deleted">Mesajele sterse!</label>
+			<label index="clickAnswers">Click on answers to display only results with that answers.</label>
+			<label index="only_select">Only questions which are answered like this</label>
 			<label index="number">Număr</label>
 			<label index="date">Data</label>
 			<label index="dateformat">Data Format</label>
