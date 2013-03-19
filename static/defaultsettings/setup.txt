@@ -145,6 +145,12 @@ plugin.tx_myquizpoll_pi1 {
 
 		# Group highscore list by: name: user name; fe_uid: front-end-user
 		groupBy =
+		
+		# Show only entries of a logged in user
+		showUser = 0
+		
+		# Ignore the PID and show a highscore from all folders
+		ignorePid = 0
 
 		# See manual
 		linkTo =

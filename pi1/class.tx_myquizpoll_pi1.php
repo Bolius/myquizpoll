@@ -2942,12 +2942,16 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 			if ($quizData['detail'] && ($quizData['name'] || $quizData['fe_uid'])) {
 				$where = ($quizData['fe_uid']) ? " AND fe_uid=".intval($quizData['fe_uid']) :
 												 " AND name='".$GLOBALS['TYPO3_DB']->quoteStr($quizData['name'], $this->tableAnswers)."'";
-			} else $where = '';
+			} else if ($this->conf['highscore.']['showUser'] && $GLOBALS['TSFE']->fe_user->user['uid'])
+				$where = ' AND fe_uid='.intval($GLOBALS['TSFE']->fe_user->user['uid']);
+			else $where = '';
 		}
-		
+		if (!$this->conf['highscore.']['ignorePid'])
+			$where .= ' AND '.$this->tableAnswers.'.pid IN ('.$resPID.')';
+
 		$res4 = $GLOBALS['TYPO3_DB']->exec_SELECTquery($select,
 				$this->tableAnswers.$from,
-				$this->tableAnswers.'.pid IN ('.$resPID.') AND '.$this->tableAnswers.'.sys_language_uid='.$this->lang.' '.$this->cObj->enableFields($this->tableAnswers).$where,
+				$this->tableAnswers.'.sys_language_uid='.$this->lang.' '.$this->cObj->enableFields($this->tableAnswers).$where,
 				$groupBy,
 				$orderBy.$flag,
 				$limit);
