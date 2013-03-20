@@ -1342,6 +1342,50 @@
                 </config>
             </TCEforms>
         </groupBy>
+        <showUser>
+            <TCEforms>
+                <label>LLL:EXT:myquizpoll/locallang_ff.xml:flexform.sheets.highscore.showUser</label>
+                <config>
+                    <type>select</type>
+                    <items type="array">
+                        <numIndex index="0" type="array">
+                            <numIndex index="0">LLL:EXT:myquizpoll/locallang_ff.xml:flexform.sheets.highscore.showUser.ts</numIndex>
+                            <numIndex index="1">TS</numIndex>
+                        </numIndex>
+                        <numIndex index="1" type="array">
+                            <numIndex index="0">LLL:EXT:myquizpoll/locallang_ff.xml:flexform.sheets.general.no</numIndex>
+                            <numIndex index="1">0</numIndex>
+                        </numIndex>
+                        <numIndex index="2" type="array">
+                            <numIndex index="0">LLL:EXT:myquizpoll/locallang_ff.xml:flexform.sheets.general.yes</numIndex>
+                            <numIndex index="1">1</numIndex>
+                        </numIndex>
+                    </items>
+                </config>
+            </TCEforms>
+        </showUser>
+        <ignorePid>
+            <TCEforms>
+                <label>LLL:EXT:myquizpoll/locallang_ff.xml:flexform.sheets.highscore.ignorePid</label>
+                <config>
+                    <type>select</type>
+                    <items type="array">
+                        <numIndex index="0" type="array">
+                            <numIndex index="0">LLL:EXT:myquizpoll/locallang_ff.xml:flexform.sheets.highscore.ignorePid.ts</numIndex>
+                            <numIndex index="1">TS</numIndex>
+                        </numIndex>
+                        <numIndex index="1" type="array">
+                            <numIndex index="0">LLL:EXT:myquizpoll/locallang_ff.xml:flexform.sheets.general.no</numIndex>
+                            <numIndex index="1">0</numIndex>
+                        </numIndex>
+                        <numIndex index="2" type="array">
+                            <numIndex index="0">LLL:EXT:myquizpoll/locallang_ff.xml:flexform.sheets.general.yes</numIndex>
+                            <numIndex index="1">1</numIndex>
+                        </numIndex>
+                    </items>
+                </config>
+            </TCEforms>
+        </ignorePid>
         <linkTo>
             <TCEforms>
 				<exclude>1</exclude>

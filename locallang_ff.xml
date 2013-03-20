@@ -179,6 +179,10 @@
       <label index="flexform.sheets.highscore.groupBy.ts">Use TS-value "highscore.groupBy"</label>
       <label index="flexform.sheets.highscore.groupBy.name">Name</label>
       <label index="flexform.sheets.highscore.groupBy.fe_uid">fe_users id</label>
+      <label index="flexform.sheets.highscore.showUser">Show the highscore only of the logged-in user?</label>
+      <label index="flexform.sheets.highscore.showUser.ts">Use TS-value "highscore.showUser"</label>
+      <label index="flexform.sheets.highscore.ignorePid">Ignore the PID and display a highscore of all folders?</label>
+      <label index="flexform.sheets.highscore.ignorePid.ts">Use TS-value "highscore.ignorePid"</label>
       <label index="flexform.sheets.highscore.linkTo">Parameter for the link of fe_users:</label>
       <label index="flexform.sheets.highscore.nothing">nothing/default</label>
       <label index="flexform.sheets.highscore.dateFormat">Date format, e.g. m-d-Y</label>
@@ -408,6 +412,10 @@
       <label index="flexform.sheets.highscore.groupBy.ts">Nimm TS-Wert "highscore.groupBy"</label>
       <label index="flexform.sheets.highscore.groupBy.name">Name</label>
       <label index="flexform.sheets.highscore.groupBy.fe_uid">fe_users id</label>
+      <label index="flexform.sheets.highscore.showUser">Zeige den Highscore nur für eingeloggte Benutzer?</label>
+      <label index="flexform.sheets.highscore.showUser.ts">Nimm TS-Wert "highscore.showUser"</label>
+      <label index="flexform.sheets.highscore.ignorePid">Ignoriere die PID und zeige den Highscore aller Ordner an?</label>
+      <label index="flexform.sheets.highscore.ignorePid.ts">Nimm TS-Wert "highscore.ignorePid"</label>
       <label index="flexform.sheets.highscore.linkTo">Parameter für den fe_users-Link:</label>
       <label index="flexform.sheets.highscore.nothing">nichts/default</label>
       <label index="flexform.sheets.highscore.dateFormat">Datums-Format, z.B. d.m.Y</label>
@@ -637,6 +645,10 @@
       <label index="flexform.sheets.highscore.groupBy.ts">Use TS-value "highscore.groupBy"</label>
       <label index="flexform.sheets.highscore.groupBy.name">Name</label>
       <label index="flexform.sheets.highscore.groupBy.fe_uid">fe_users id</label>
+      <label index="flexform.sheets.highscore.showUser">Show the highscore only of the logged-in user?</label>
+      <label index="flexform.sheets.highscore.showUser.ts">Use TS-value "highscore.showUser"</label>
+      <label index="flexform.sheets.highscore.ignorePid">Ignore the PID and display a highscore of all folders?</label>
+      <label index="flexform.sheets.highscore.ignorePid.ts">Use TS-value "highscore.ignorePid"</label>
       <label index="flexform.sheets.highscore.linkTo">Parameter for the link of fe_users:</label>
       <label index="flexform.sheets.highscore.nothing">nothing/default</label>
       <label index="flexform.sheets.highscore.dateFormat">Le format de date, par exemple m-d-Y</label>
@@ -868,6 +880,10 @@
       <label index="flexform.sheets.highscore.groupBy.ts">Use TS-value "highscore.groupBy"</label>
       <label index="flexform.sheets.highscore.groupBy.name">Name</label>
       <label index="flexform.sheets.highscore.groupBy.fe_uid">fe_users id</label>
+      <label index="flexform.sheets.highscore.showUser">Show the highscore only of the logged-in user?</label>
+      <label index="flexform.sheets.highscore.showUser.ts">Use TS-value "highscore.showUser"</label>
+      <label index="flexform.sheets.highscore.ignorePid">Ignore the PID and display a highscore of all folders?</label>
+      <label index="flexform.sheets.highscore.ignorePid.ts">Use TS-value "highscore.ignorePid"</label>
       <label index="flexform.sheets.highscore.linkTo">Parameter for the link of fe_users:</label>
       <label index="flexform.sheets.highscore.nothing">nothing/default</label>
       <label index="flexform.sheets.highscore.dateFormat">Formato della data, per esempio m-d-Y</label>
@@ -1099,6 +1115,10 @@
       <label index="flexform.sheets.highscore.groupBy.ts">Use TS-value "highscore.groupBy"</label>
       <label index="flexform.sheets.highscore.groupBy.name">Name</label>
       <label index="flexform.sheets.highscore.groupBy.fe_uid">fe_users id</label>
+      <label index="flexform.sheets.highscore.showUser">Show the highscore only of the logged-in user?</label>
+      <label index="flexform.sheets.highscore.showUser.ts">Use TS-value "highscore.showUser"</label>
+      <label index="flexform.sheets.highscore.ignorePid">Ignore the PID and display a highscore of all folders?</label>
+      <label index="flexform.sheets.highscore.ignorePid.ts">Use TS-value "highscore.ignorePid"</label>
       <label index="flexform.sheets.highscore.linkTo">Parameter for the link of fe_users:</label>
       <label index="flexform.sheets.highscore.nothing">nothing/default</label>
       <label index="flexform.sheets.highscore.dateFormat">El formato de fecha, por ejemplo, m-d-Y</label>
@@ -1346,6 +1366,10 @@
       <label index="flexform.sheets.highscore.groupBy.ts">Use TS-value "highscore.groupBy"</label>
       <label index="flexform.sheets.highscore.groupBy.name">Name</label>
       <label index="flexform.sheets.highscore.groupBy.fe_uid">fe_users id</label>
+      <label index="flexform.sheets.highscore.showUser">Show the highscore only of the logged-in user?</label>
+      <label index="flexform.sheets.highscore.showUser.ts">Use TS-value "highscore.showUser"</label>
+      <label index="flexform.sheets.highscore.ignorePid">Ignore the PID and display a highscore of all folders?</label>
+      <label index="flexform.sheets.highscore.ignorePid.ts">Use TS-value "highscore.ignorePid"</label>
       <label index="flexform.sheets.highscore.linkTo">Parameter for the link of fe_users:</label>
       <label index="flexform.sheets.highscore.nothing">nothing/default</label>
       <label index="flexform.sheets.highscore.dateFormat">Formatul datei, de exemplu, m-d-Y</label>

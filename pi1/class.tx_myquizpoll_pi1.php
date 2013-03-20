@@ -2929,7 +2929,9 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 			if ($groupBy=='fe_uid') {
 				$select .= ', fe_uid, fe_users.'.$GLOBALS['TYPO3_DB']->quoteStr($this->conf['fe_usersName'], 'fe_users').' AS name, fe_users.email AS email, fe_users.www AS homepage';
 				$from = ',fe_users';
-				$where = ' AND fe_uid>0 AND fe_uid=fe_users.uid';
+				$where = ($this->conf['highscore.']['showUser'] && $GLOBALS['TSFE']->fe_user->user['uid']) ?
+					' AND fe_uid='.intval($GLOBALS['TSFE']->fe_user->user['uid']) :	' AND fe_uid>0';
+				$where .= ' AND fe_uid=fe_users.uid';
 			} else {
 				$select .= ', name';
 				$from = '';
