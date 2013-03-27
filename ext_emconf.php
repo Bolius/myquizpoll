@@ -15,7 +15,7 @@ $EM_CONF[$_EXTKEY] = array(
 	'description' => 'An advanced quiz with a lot of features (e.g. highscore list, multi-page, multi-lingual, jokers) which can be used as a quiz, questionnaire, survey, poll, rating or psychological test',
 	'category' => 'plugin',
 	'shy' => 0,
-	'version' => '2.1.6',
+	'version' => '2.1.7',
 	'dependencies' => '',
 	'conflicts' => '',
 	'priority' => '',
@@ -34,6 +34,9 @@ $EM_CONF[$_EXTKEY] = array(
 	'CGLcompliance_note' => '',
 	'constraints' => array(
 		'depends' => array(
+			'cms' => '',
+			'php' => '5.0.0-0.0.0',
+			'typo3' => '4.4.0-0.0.0',
 		),
 		'conflicts' => array(
 		),
