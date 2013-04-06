@@ -179,6 +179,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 		$markerArrayP["###FORM_URL###"] = $this->pi_getPageLink($nextPID);
 		$markerArrayP["###NO_NEGATIVE###"] = intval($this->conf['noNegativePoints']);
 		$markerArrayP["###REMOTE_IP###"] = intval($this->conf['remoteIP']);
+		$markerArrayP["###BLOCK_IP###"] = $this->conf['blockIP'];
 		$markerArrayQ["###PREFIX###"] = $this->prefixId;
 		$markerArray["###PREFIX###"] = $this->prefixId;
 		$markerArray["###FORM_URL###"] = $markerArrayP["###FORM_URL###"];
@@ -408,6 +409,23 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 			if ($this->helperObj->writeDevLog)
 				t3lib_div::devLog('captcha check 2 not ok.', $this->extKey, 0);
 			$error=true;
+		}
+		
+		// check if used IP is blocked
+		if ($quizData['cmd'] == 'submit' && $this->conf['blockIP']) {
+			$ips = explode(',', $this->conf['blockIP']);
+			foreach ($ips as $aip) {
+				$len = strlen(trim($aip));
+				if (substr($quiz_taker_ip_address,0,$len) == trim($aip)) {
+					//$markerArray["###IP_BLOCKED###"] = $this->pi_getLL('ip_blocked','ip_blocked');
+					//$template = $this->cObj->getSubpart($this->templateCode, "###TEMPLATE_IP_BLOCKED###");
+					$markerArrayP["###REF_ERRORS###"] .= 'Your IP is blocked!'; //$this->cObj->substituteMarkerArray($template, $markerArray);
+					if ($this->helperObj->writeDevLog)
+						t3lib_div::devLog('IP '.$quiz_taker_ip_address.' blocked!', $this->extKey, 0);
+					$error=true;
+					$no_rights = 1;
+				}
+			}
 		}
 		
 		// read quiz takers old data
@@ -3157,6 +3175,8 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 		$markerArray["###VAR_RESPID###"] = $resPID;
 		$markerArray["###VAR_LANG###"] = $this->lang;
 		$markerArray["###VAR_FID###"] = '';
+		$markerArray["###REMOTE_IP###"] = intval($this->conf['remoteIP']);
+		$markerArray["###BLOCK_IP###"] = $this->conf['blockIP'];
 		if ($this->conf['rating.']['parameter']) {	// rating
 			$markerArray["###VAR_FID###"] = $this->helperObj->getForeignId();		// a foreign uid, added on 13.5.2012
 		}

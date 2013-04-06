@@ -189,6 +189,9 @@ plugin.tx_myquizpoll_pi1 {
     # Try to get the real IP-address or take only the REMOTE_ADDR? 0: real IP; 1: REMOTE_ADDR
     remoteIP = 0
     
+    # Block some IP-addresses (e.g. from google) on the submit page? Expamples: 66.249
+    blockIP =
+    
 	# fe_users-field for the quiz taker name, e.g. name or username
 	fe_usersName = name
 	

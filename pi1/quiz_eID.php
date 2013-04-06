@@ -20,6 +20,7 @@
   $pid = intval(t3lib_div::_GP('pid'));		// parent id
   $lang = intval(t3lib_div::_GP('lang'));	// language
   $remoteIP = intval(t3lib_div::_GP('remote_ip'));	// take remote IP?
+  $blockIP = t3lib_div::_GP('block_ip');	// block some IPs?
   $no_negative = intval(t3lib_div::_GP('no_negative'));	// no negative points?
   $joker1 = intval(t3lib_div::_GP('joker1'));	// Jokers
   $joker2 = intval(t3lib_div::_GP('joker2'));
@@ -30,7 +31,8 @@
   $rowsArray = array();
   $rowsArray[0] = array();
   $rowsArray[0][OPT_QTID] = $qtuid;
-
+  $block = false;
+  
   if ($vote) {
 	$timestamp = time();
 	if ($remoteIP) {
@@ -42,7 +44,16 @@
 	} else {
 	  $ip=$_SERVER['REMOTE_ADDR'];
 	}
-  
+	if ($blockIP) {
+		$ips = explode(',', $blockIP);
+		foreach ($ips as $aip) {
+			$len = strlen(trim($aip));
+			if (substr($ip,0,$len) == trim($aip)) {
+				$block = true;
+			}
+		}
+	}
+	
 	// Die komplette Frage holen
 	$queryResult = $GLOBALS['TYPO3_DB']->exec_SELECTquery('*', // statt "answer$vote, correct$vote, points$vote, points, explanation",
 		'tx_myquizpoll_question',
@@ -117,54 +128,56 @@
 	if ($no_negative==4) $total_points = ($fids) ? $total_points : 0;
 	$rowsArray[0][OPT_TOTAL_POINTS] = $total_points;	// total points nur bei 0 !
 	
-	if ($qtuid > 0) {
-		// update
-		$queryResult = $GLOBALS['TYPO3_DB']->exec_SELECTquery('p_or_a,percent,qids,cids,fids,sids',
-			'tx_myquizpoll_result',
-			'uid='.$qtuid);
-		$row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($queryResult);
-		$total_points += intval($row['p_or_a']);
-		if ($row['cids']) 
-		  $cids = ($cids) ? $row['cids'].','.$cids : $row['cids'];
-		if ($row['fids']) 
-		  $fids = ($fids) ? $row['fids'].','.$fids : $row['fids'];
-		if ($row['sids']) 
-		  $sids = ($sids) ? $row['sids'].','.$sids : $row['sids'];
-		if ($row['qids']) 
-		  $qids = ($qids) ? $row['qids'].','.$qids : $row['qids'];
-		$GLOBALS['TYPO3_DB']->sql_free_result($queryResult);
-		
-		$update = array('lasttime' => $timestamp,
-						'p_or_a' => $total_points,
-						'percent' => 0,
-						'qids' => $qids,
-						'cids' => $cids,
-						'fids' => $fids,
-						'sids' => $sids);
-		$success = $GLOBALS['TYPO3_DB']->exec_UPDATEquery('tx_myquizpoll_result', 'uid='.$qtuid.' AND sys_language_uid='.$lang, $update);
-	} else {
-		// insert
-		$insert = array('pid' => $pid,
-						'tstamp' => $timestamp,
-						'crdate' => $timestamp,
-						'firsttime' => $timestamp,
-						'cruser_id' => $GLOBALS['TSFE']->fe_user->user['uid'],
-						'sys_language_uid' => $lang,
-						'hidden' => 0,
-						'ip' => $ip,
-						'name' => '???',
-						'p_or_a' => $total_points,
-						'percent' => 0,
-						'joker1' => $joker1,
-						'joker2' => $joker2,
-						'joker3' => $joker3,
-						'qids' => $qids,
-						'cids' => $cids,
-						'fids' => $fids,
-						'sids' => $sids);
-		$success = $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_myquizpoll_result', $insert);
-		if ($success)
-			$rowsArray[0][OPT_QTID] = $GLOBALS['TYPO3_DB']->sql_insert_id();
+	if (!$block) {
+		if ($qtuid > 0) {
+			// update
+			$queryResult = $GLOBALS['TYPO3_DB']->exec_SELECTquery('p_or_a,percent,qids,cids,fids,sids',
+				'tx_myquizpoll_result',
+				'uid='.$qtuid);
+			$row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($queryResult);
+			$total_points += intval($row['p_or_a']);
+			if ($row['cids']) 
+			  $cids = ($cids) ? $row['cids'].','.$cids : $row['cids'];
+			if ($row['fids']) 
+			  $fids = ($fids) ? $row['fids'].','.$fids : $row['fids'];
+			if ($row['sids']) 
+			  $sids = ($sids) ? $row['sids'].','.$sids : $row['sids'];
+			if ($row['qids']) 
+			  $qids = ($qids) ? $row['qids'].','.$qids : $row['qids'];
+			$GLOBALS['TYPO3_DB']->sql_free_result($queryResult);
+			
+			$update = array('lasttime' => $timestamp,
+							'p_or_a' => $total_points,
+							'percent' => 0,
+							'qids' => $qids,
+							'cids' => $cids,
+							'fids' => $fids,
+							'sids' => $sids);
+			$success = $GLOBALS['TYPO3_DB']->exec_UPDATEquery('tx_myquizpoll_result', 'uid='.$qtuid.' AND sys_language_uid='.$lang, $update);
+		} else {
+			// insert
+			$insert = array('pid' => $pid,
+							'tstamp' => $timestamp,
+							'crdate' => $timestamp,
+							'firsttime' => $timestamp,
+							'cruser_id' => $GLOBALS['TSFE']->fe_user->user['uid'],
+							'sys_language_uid' => $lang,
+							'hidden' => 0,
+							'ip' => $ip,
+							'name' => '???',
+							'p_or_a' => $total_points,
+							'percent' => 0,
+							'joker1' => $joker1,
+							'joker2' => $joker2,
+							'joker3' => $joker3,
+							'qids' => $qids,
+							'cids' => $cids,
+							'fids' => $fids,
+							'sids' => $sids);
+			$success = $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_myquizpoll_result', $insert);
+			if ($success)
+				$rowsArray[0][OPT_QTID] = $GLOBALS['TYPO3_DB']->sql_insert_id();
+		}
 	}
   }
 

@@ -16,6 +16,7 @@
   $pid = intval(t3lib_div::_GP('pid'));
   $lang = intval(t3lib_div::_GP('lang'));
   $remoteIP = intval(t3lib_div::_GP('remote_ip'));
+  $blockIP = t3lib_div::_GP('block_ip');
   $vote = intval(t3lib_div::_GP('vote'));
   $antworten = 6; //intval(t3lib_div::_GP('qnr'));
   $rowsArray = array();
@@ -25,6 +26,7 @@
 //   if ($userCookie==-1) {
 	// Insert new vote into database
 	$timestamp = time();
+	$block = false;
 	if ($remoteIP) {
       $ip=$_SERVER['REMOTE_ADDR'];
 	} elseif (!empty($_SERVER['HTTP_CLIENT_IP'])) {   //check ip from share internet
@@ -34,20 +36,31 @@
 	} else {
 	  $ip=$_SERVER['REMOTE_ADDR'];
 	}
-	$insert = array('pid' => $pid,
-					'tstamp' => $timestamp,
-					'crdate' => $timestamp,
-					'cruser_id' => $GLOBALS['TSFE']->fe_user->user['uid'],
-					'sys_language_uid' => $lang,
-					'hidden' => 0,
-					'ip' => $ip,
-					'answer_no' => $vote,
-					'question_id' => $uid,
-					'foreign_val' => $fid);
-	$success = $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_myquizpoll_voting', $insert);
-	//if($success){
-	//	$qtuid = $GLOBALS['TYPO3_DB']->sql_insert_id();
-	//}
+	if ($blockIP) {
+		$ips = explode(',', $blockIP);
+		foreach ($ips as $aip) {
+			$len = strlen(trim($aip));
+			if (substr($ip,0,$len) == trim($aip)) {
+				$block = true;
+			}
+		}
+	}
+	if (!$block) {
+		$insert = array('pid' => $pid,
+						'tstamp' => $timestamp,
+						'crdate' => $timestamp,
+						'cruser_id' => $GLOBALS['TSFE']->fe_user->user['uid'],
+						'sys_language_uid' => $lang,
+						'hidden' => 0,
+						'ip' => $ip,
+						'answer_no' => $vote,
+						'question_id' => $uid,
+						'foreign_val' => $fid);
+		$success = $GLOBALS['TYPO3_DB']->exec_INSERTquery('tx_myquizpoll_voting', $insert);
+		//if($success){
+		//	$qtuid = $GLOBALS['TYPO3_DB']->sql_insert_id();
+		//}
+	}
  //  }
   }
   

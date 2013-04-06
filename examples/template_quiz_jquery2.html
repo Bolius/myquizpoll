@@ -89,13 +89,14 @@ $(document).ready(function(){
 			url: "index.php",		// Achtung mit RealURL!
 			type: "GET",			// Daten per GET verschicken
 			data: {
-				'eID': "myquiz_eID",	// the eID
+				'eID': 'myquiz_eID',	// the eID
 				'qtid': qtuid,			// quiz taker uid
 				'qid': ###VAR_QID###,	// question uid
 				'pid': ###VAR_RESPID###,	// results pid
 				'lang': ###VAR_LANG###,		// language
 				'no_negative': ###NO_NEGATIVE###,	// negative points?
 				'remote_ip': ###REMOTE_IP###,	// take remote IP address?
+				'block_ip': '###BLOCK_IP###',	// block some IPs?
 				'vote': checkedID,	// Selected answers
 				'qnr': qnr,			// no. of answers
 				'joker1': (($(document.forms["myquiz"].elements["###PREFIX###[joker1]"]).length>0) ? document.forms["myquiz"].elements["###PREFIX###[joker1]"].value : 0),

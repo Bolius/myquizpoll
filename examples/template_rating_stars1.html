@@ -131,7 +131,7 @@ $(function(){
 			// Display message to the user at the begining of request
 			$("#stars-messages").text("Speichere...").stop().css("opacity", 1).fadeIn(30);
 			
-			$.post("index.php", {'eID':'myquizpoll_eID', 'qid': ###VAR_QID###, 	'fid': '###VAR_FID###',	'pid': ###VAR_RESPID###, 'lang': ###VAR_LANG###, 'remote_ip': ###REMOTE_IP###, 'vote': value}, function(data)
+			$.post("index.php", {'eID':'myquizpoll_eID', 'qid': ###VAR_QID###, 	'fid': '###VAR_FID###',	'pid': ###VAR_RESPID###, 'lang': ###VAR_LANG###, 'remote_ip': ###REMOTE_IP###, 'block_ip': '###BLOCK_IP###', 'vote': value}, function(data)
 			{
 				var total_votes = 0;
 				var total_sum = 0;
