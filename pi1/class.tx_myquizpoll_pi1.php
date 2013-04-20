@@ -3182,14 +3182,15 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 		}
 		$where_fid = ($markerArray["###VAR_FID###"]) ?
 			" AND foreign_val='".$GLOBALS['TYPO3_DB']->quoteStr($markerArray["###VAR_FID###"], 'tx_myquizpoll_voting')."'" : '';
+		$pollStart = intval($this->conf['pollStart']);
 		
 		// poll question (only latest question!)
 		$queryResult = $GLOBALS['TYPO3_DB']->exec_SELECTquery('*',
 				$this->tableQuestions,
 				'pid IN ('.$thePID.')'.$answeredP.' AND sys_language_uid='.$this->lang.' '.$this->cObj->enableFields($this->tableQuestions),
 				'',
-				'uid DESC',
-				'1');
+				$this->getSortBy(), //'uid DESC',
+				"$pollStart,1");
 		$row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($queryResult);
 		if ($this->helperObj->writeDevLog)
 			t3lib_div::devLog('Poll result: selected question with pid IN ('.$thePID.')'.$answeredP.' AND sys_language_uid='.$this->lang.': '.$row['uid'], $this->extKey, 0);

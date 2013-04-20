@@ -6,6 +6,9 @@ plugin.tx_myquizpoll_pi1 {
 
 	# Sort questions by: sorting | uid | title | random
 	sortBy = sorting
+
+	# In poll mode: take which question on a poll result page? 0: first one; 1: second one and so on
+	pollStart = 0
 	
 	# Random-sort (mix) selectable answers? 0: no; 1: yes
 	mixAnswers = 0
