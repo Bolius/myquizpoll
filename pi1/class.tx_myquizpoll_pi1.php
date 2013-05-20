@@ -56,7 +56,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
      * @param    array    $conf: The PlugIn Configuration
      * @return    string    The content that should be displayed on the website
      */
-    function main($content,$conf)    {
+    function main($content,$conf) {
         $this->conf=$conf;
         $this->pi_setPiVarDefaults();
         $this->pi_initPIflexForm(); // Init FlexForm configuration for plugin 
@@ -124,7 +124,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
         
         // Get post parameters: Submited Quiz-data
         $quizData = array();
-        if (is_array(t3lib_div::_GP($this->prefixId))) {
+        if (is_array(t3lib_div::_GP($this->prefixId)) && !$this->conf['ignoreSubmit']) {
           if (is_array(t3lib_div::_POST($this->prefixId)))
             $quizData = t3lib_div::_POST($this->prefixId);
           else
@@ -265,7 +265,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
         );
         
         // enable dev logging if set
-        if (TYPO3_DLOG || $this->conf['debug']==3) {
+        if (TYPO3_DLOG || $this->conf['debug']) {
             $this->helperObj->writeDevLog = TRUE;
             t3lib_div::devLog('Language: '.$this->lang.'; use cookies: '.$this->conf['useCookiesInDays'].'; path to template: '.$tempPath, $this->extKey, 0);
         }
@@ -313,226 +313,229 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
         
         $quiz_taker_ip_address = preg_replace('/[^0-9\.]/', '', $this->helperObj->getRealIpAddr());
         
-        // check for second entry ( based on the ip-address )
-        if ( $this->conf['doubleEntryCheck'] && ($quizData['cmd']!='score' && $quizData['cmd']!='list') && !$quizData['qtuid'] && $no_rights == 0 ) {
-            $res5 = $GLOBALS['TYPO3_DB']->exec_SELECTquery( 'tstamp, uid',
-                $this->tableAnswers,
-                'pid='.$resPID." AND ip='".$quiz_taker_ip_address."' AND sys_language_uid=".$this->lang,
-                //.' '.$this->cObj->enableFields($this->tableAnswers), auskommentiert am 7.11.10
-                '',
-                'tstamp DESC',
-                '1');
-            $rows = $GLOBALS['TYPO3_DB']->sql_num_rows($res5);
-            if ($rows>0) {                            // DB entry found for current user?
-                $fetchedRow = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res5);
-                $dateOld = $fetchedRow['tstamp'];
-                $period = intval($this->conf['doubleEntryCheck']);    // seconds
-                if ($period < 10000) $period *= 60*60*24;        // days
-                //if ($period==1) $period = 50000;        // approx. a half day is the quiz blocked for the same ip-address
-                if ((time() - $dateOld) < $period) {
-                    if ( $this->conf['doubleCheckMode'] || $this->conf['secondPollMode'] ) {
-                        $quizData['qtuid'] = intval($fetchedRow['uid']);
-                        $quizData['cmd']  = 'next';
-                        $secondVisit = true;
-                    } else {
-                        $no_rights = 1;                        // user is (b)locked now
-                        $markerArray["###DOUBLE_ENTRY###"] = $this->pi_getLL('double_entry','double_entry');
-                        $template = $this->cObj->getSubpart($this->templateCode, "###TEMPLATE_QUIZ_DOUBLE_ENTRY###");
-                        $content .= $this->cObj->substituteMarkerArray($template, $markerArray);         // Sonderfall !!!
-                        if ($this->helperObj->writeDevLog)
-                            t3lib_div::devLog('User is blocked (ip-check).', $this->extKey, 0);
-                    }
-                }
-                $GLOBALS['TYPO3_DB']->sql_free_result($res5);
-            }
-            if ($this->helperObj->writeDevLog)
-                t3lib_div::devLog('IP check for qtuid='.$quizData['qtuid'], $this->extKey, 0);
+        // Ignore all sumbits and old data?
+        if (!$this->conf['ignoreSubmit']) {
+	        // check for second entry ( based on the ip-address )
+	        if ( $this->conf['doubleEntryCheck'] && ($quizData['cmd']!='score' && $quizData['cmd']!='list') && !$quizData['qtuid'] && $no_rights == 0 ) {
+	            $res5 = $GLOBALS['TYPO3_DB']->exec_SELECTquery( 'tstamp, uid',
+	                $this->tableAnswers,
+	                'pid='.$resPID." AND ip='".$quiz_taker_ip_address."' AND sys_language_uid=".$this->lang,
+	                //.' '.$this->cObj->enableFields($this->tableAnswers), auskommentiert am 7.11.10
+	                '',
+	                'tstamp DESC',
+	                '1');
+	            $rows = $GLOBALS['TYPO3_DB']->sql_num_rows($res5);
+	            if ($rows>0) {                            // DB entry found for current user?
+	                $fetchedRow = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res5);
+	                $dateOld = $fetchedRow['tstamp'];
+	                $period = intval($this->conf['doubleEntryCheck']);    // seconds
+	                if ($period < 10000) $period *= 60*60*24;        // days
+	                //if ($period==1) $period = 50000;        // approx. a half day is the quiz blocked for the same ip-address
+	                if ((time() - $dateOld) < $period) {
+	                    if ( $this->conf['doubleCheckMode'] || $this->conf['secondPollMode'] ) {
+	                        $quizData['qtuid'] = intval($fetchedRow['uid']);
+	                        $quizData['cmd']  = 'next';
+	                        $secondVisit = true;
+	                    } else {
+	                        $no_rights = 1;                        // user is (b)locked now
+	                        $markerArray["###DOUBLE_ENTRY###"] = $this->pi_getLL('double_entry','double_entry');
+	                        $template = $this->cObj->getSubpart($this->templateCode, "###TEMPLATE_QUIZ_DOUBLE_ENTRY###");
+	                        $content .= $this->cObj->substituteMarkerArray($template, $markerArray);         // Sonderfall !!!
+	                        if ($this->helperObj->writeDevLog)
+	                            t3lib_div::devLog('User is blocked (ip-check).', $this->extKey, 0);
+	                    }
+	                }
+	                $GLOBALS['TYPO3_DB']->sql_free_result($res5);
+	            }
+	            if ($this->helperObj->writeDevLog)
+	                t3lib_div::devLog('IP check for qtuid='.$quizData['qtuid'], $this->extKey, 0);
+	        }
+	        
+	        // check for second entry ( based on the fe_users-id )
+	        if ( $this->conf['loggedInMode'] && ($quizData['cmd']!='score' && $quizData['cmd']!='list') && !$quizData['qtuid'] && $GLOBALS['TSFE']->loginUser && $this->tableAnswers=='tx_myquizpoll_result' && $no_rights == 0 ) {
+	            $fe_uid = intval($GLOBALS['TSFE']->fe_user->user['uid']);
+	            $res5 = $GLOBALS['TYPO3_DB']->exec_SELECTquery( 'uid, tstamp',
+	                $this->tableAnswers,
+	                'pid='.$resPID." AND fe_uid=$fe_uid AND sys_language_uid=".$this->lang,
+	                //.' '.$this->cObj->enableFields($this->tableAnswers), auskommentiert am 7.11.10
+	                '',
+	                'tstamp DESC',
+	                '1');
+	            $rows = $GLOBALS['TYPO3_DB']->sql_num_rows($res5);
+	            if ($rows>0) {                            // DB entry found for current user?
+	                $fetchedRow = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res5);
+	                if ( $this->conf['doubleCheckMode'] || $this->conf['secondPollMode'] ) {
+	                    $quizData['qtuid'] = intval($fetchedRow['uid']);
+	                    $quizData['cmd']  = 'next';
+	                    $secondVisit = true;
+	                } else {
+	                    $no_rights = 1;                        // user is (b)locked now
+	                    $markerArray["###DOUBLE_ENTRY###"] = $this->pi_getLL('double_entry','double_entry');
+	                    $template = $this->cObj->getSubpart($this->templateCode, "###TEMPLATE_QUIZ_DOUBLE_ENTRY###");
+	                    $content .= $this->cObj->substituteMarkerArray($template, $markerArray);         // Sonderfall !!!
+	                }
+	                $GLOBALS['TYPO3_DB']->sql_free_result($res5);
+	            }
+	            if ($this->helperObj->writeDevLog)
+	                t3lib_div::devLog('fe_users check for qtuid='.$quizData['qtuid'], $this->extKey, 0);
+	        }
+	        
+	        // check if the captcha is OK
+	        if ((($quizData['cmd']  == 'submit' && $this->helperObj->getAskAtQ($quizData['qtuid'])) ||
+	             ($quizData["fromStart"] && $this->conf['userData.']['askAtStart']) ||
+	             ($quizData["fromFinal"] && $this->conf['userData.']['askAtFinal'])) &&
+	                is_object($this->freeCap) && $this->conf['enableCaptcha'] &&
+	                !$this->freeCap->checkWord($quizData['captcha_response']) && $no_rights == 0) {
+	            if ($quizData["fromStart"] && $startPID!=$GLOBALS["TSFE"]->id) {    // Weiterleitung zurueck zur Extra-Startseite
+	                $this->redirectUrl($startPID, array($this->prefixId.'[name]' => $quizData["name"],$this->prefixId.'[email]' => $quizData["email"],$this->prefixId.'[homepage]' => $quizData["homepage"], $this->prefixId.'[captchaError]' => '1'));
+	                break;    // hier kommt man eh nie hin...
+	            }
+	            if ($quizData["fromFinal"] && $finalPID!=$GLOBALS["TSFE"]->id) {    // Weiterleitung zurueck zur Extra-Endseite
+	                $this->redirectUrl($finalPID, array($this->prefixId.'[qtuid]' => intval($quizData["qtuid"]),$this->prefixId.'[cmd]' => 'next',$this->prefixId.'[name]' => $quizData["name"],$this->prefixId.'[email]' => $quizData["email"],$this->prefixId.'[homepage]' => $quizData["homepage"], $this->prefixId.'[captchaError]' => '1'));
+	                break;    // hier kommt man eh nie hin...
+	            }
+	            $quizData['cmd']  = ($quizData["fromStart"]) ? '' : 'next';        // "nochmal" simulieren
+	            //$quizData['qtuid'] = '';        // wieso wohl???
+	            $markerArray["###CAPTCHA_NOT_OK###"] = $this->pi_getLL('captcha_not_ok','captcha_not_ok');
+	            $template = $this->cObj->getSubpart($this->templateCode, "###TEMPLATE_CAPTCHA_NOT_OK###");
+	            $markerArrayP["###REF_ERRORS###"] .= $this->cObj->substituteMarkerArray($template, $markerArray);    // instead of $content
+	            //if ($quizData["fromStart"]) 
+	            $quizData["fromStart"] = 0;            // nichts wurde getan simulieren
+	            $quizData["fromFinal"] = 0;
+	            if ($this->helperObj->writeDevLog)
+	                t3lib_div::devLog('captcha check 1 not ok.', $this->extKey, 0);
+	            $error=true;
+	            $captchaError = true;
+	        } else if ($quizData["captchaError"]) {
+	            $markerArray["###CAPTCHA_NOT_OK###"] = $this->pi_getLL('captcha_not_ok','captcha_not_ok');
+	            $template = $this->cObj->getSubpart($this->templateCode, "###TEMPLATE_CAPTCHA_NOT_OK###");
+	            $markerArrayP["###REF_ERRORS###"] .= $this->cObj->substituteMarkerArray($template, $markerArray);    // instead of $content
+	            if ($this->helperObj->writeDevLog)
+	                t3lib_div::devLog('captcha check 2 not ok.', $this->extKey, 0);
+	            $error=true;
+	            $captchaError = true;
+	        }
+	        
+	        // check if used IP is blocked
+	        if ($quizData['cmd'] == 'submit' && $this->conf['blockIP']) {
+	            $ips = explode(',', $this->conf['blockIP']);
+	            foreach ($ips as $aip) {
+	                $len = strlen(trim($aip));
+	                if (substr($quiz_taker_ip_address,0,$len) == trim($aip)) {
+	                    //$markerArray["###IP_BLOCKED###"] = $this->pi_getLL('ip_blocked','ip_blocked');
+	                    //$template = $this->cObj->getSubpart($this->templateCode, "###TEMPLATE_IP_BLOCKED###");
+	                    $markerArrayP["###REF_ERRORS###"] .= 'Your IP is blocked!'; //$this->cObj->substituteMarkerArray($template, $markerArray);
+	                    if ($this->helperObj->writeDevLog)
+	                        t3lib_div::devLog('IP '.$quiz_taker_ip_address.' blocked!', $this->extKey, 0);
+	                    $error=true;
+	                    $no_rights = 1;
+	                }
+	            }
+	        }
+	        
+	        // read quiz takers old data
+	        $answeredQuestions = '';     // prev. answered Question(s)
+	        $skipped = '';
+	        $cids = '';
+	        $fids = '';
+	        if ((($this->conf['useCookiesInDays'] && !$quizData['qtuid']) || 
+	             ($quizData['cmd']  == 'next') ||
+	             ($quizData['cmd']  == 'submit' && !$this->conf['isPoll'] && ($this->conf['dontShowPoints']!=1 || $this->conf['quizTimeMinutes']))) && $no_rights == 0 ) {
+	             
+	            $cookieRead = false;
+	            if (!$quizData['qtuid'] && $this->conf['useCookiesInDays']) {   // !($quizData['cmd']  == 'next' || $quizData['cmd']  == 'submit')) warum das nur? auskommentiert am 27.12.2009
+	                $cookieName = $this->getCookieMode($resPID, $thePID);
+	                if ($this->conf['allowCookieReset'] && $quizData["resetcookie"]) {
+	                    setcookie ($cookieName, "", time() - 3600);
+	                    if ($this->helperObj->writeDevLog)
+	                        t3lib_div::devLog('Cookie reseted: '.$cookieName, $this->extKey, 0);
+	                } else {
+	                    $quizData['qtuid'] = intval($_COOKIE[$cookieName]);    // read quiz taker UID from a cookie
+	                     $cookieRead = true;
+	                    if ($this->helperObj->writeDevLog)
+	                        t3lib_div::devLog('Cookie read: '.$cookieName.'='.$quizData['qtuid'], $this->extKey, 0);
+	                    // oder? $HTTP_COOKIE_VARS["myquizpoll".$resPID];    oder?  $GLOBALS["TSFE"]->fe_user->getKey("ses","myquizpoll".$resPID);
+	                }
+	            }
+	            
+	            if ($quizData['qtuid'] && $this->tableAnswers=='tx_myquizpoll_result') {
+	                // load solved questions and quiz takers name, email, homepage, old points and last time
+	                $uid = intval($quizData['qtuid']);
+	                $res5 = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
+	                    'name, email, homepage, qids,sids,cids,fids, p_or_a, p_max, percent, o_max, o_percent, firsttime, joker1,joker2,joker3, lastcat,nextcat',
+	                    $this->tableAnswers,
+	                    'uid='.$uid.' AND sys_language_uid='.$this->lang); //.' '.$this->cObj->enableFields($this->tableAnswers), auskommentiert am 7.11.10
+	                $rows = $GLOBALS['TYPO3_DB']->sql_num_rows($res5);
+	                if ($rows>0) {                            // DB entry found for current user?
+	                    $fetchedRow = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res5);
+	                    $answeredQuestions = $fetchedRow['qids'];
+	                    if (!$this->conf["isPoll"]) {
+	                        $skipped = $fetchedRow['sids'];
+	                        $joker1 = $fetchedRow['joker1'];
+	                        $joker2 = $fetchedRow['joker2'];
+	                        $joker3 = $fetchedRow['joker3'];
+	                        $firsttime = intval($fetchedRow['firsttime']);
+	                        $this->helperObj->setFirstTime($uid, $firsttime);
+	                        if ($answeredQuestions) {    // 2.9.10: beantwortete poll-frage muss man auch speichern???
+	                            if ($fetchedRow['nextcat']) {
+	                                $nextCat = $fetchedRow['nextcat'];
+	                                if ($this->conf['startCategory']) $this->conf['startCategory'] = $nextCat;    // kategorie der naechsten frage...
+	                            }
+	                            if ($quizData['cmd']  != 'submit') {            // namen nicht ueberschreiben
+	                                $whereAnswered = ' AND uid NOT IN ('.preg_replace('/[^0-9,]/','',$answeredQuestions).')';    // exclude answered questions next time
+	                                if (!($quizData["name"] || $quizData["email"] || $quizData["homepage"])) {
+	                                    $quizData["name"] = $fetchedRow['name'];    // abgesendete daten nicht mit default-werten ueberschreiben!
+	                                    $quizData["email"] = $fetchedRow['email'];
+	                                    $quizData["homepage"] = $fetchedRow['homepage'];
+	                                }
+	                                //$markerArray["###VAR_ADDRESS_UID###"] = $quizData["address_uid"] = $fetchedRow['address_uid'];
+	                            }
+	                            $markerArray["###VAR_TOTAL_POINTS###"] = intval($fetchedRow['p_or_a']);        // save total points for the case there are no more questions
+	                            $markerArray["###VAR_TMAX_POINTS###"] = intval($fetchedRow['p_max']);
+	                            $markerArray["###VAR_TMISSING_POINTS###"] = intval($fetchedRow['p_max']) - intval($fetchedRow['p_or_a']);
+	                            $markerArray["###VAR_PERCENT###"] = intval($fetchedRow['percent']);
+	                            $markerArray["###VAR_OMAX_POINTS###"] = intval($fetchedRow['o_max']);
+	                            $markerArray["###VAR_OVERALL_PERCENT###"] = intval($fetchedRow['o_percent']);
+	                            $markerArray["###VAR_QUESTIONS_ANSWERED###"] = (($fetchedRow['qids']) ? (substr_count($fetchedRow['qids'],',')+1) : 0);
+	                            if ($fetchedRow['cids'] || $fetchedRow['fids']) {    // if weglassen?
+	                                $markerArray["###VAR_QUESTIONS_CORRECT###"] = (($fetchedRow['cids']) ? (substr_count($fetchedRow['cids'],',')+1) : 0);
+	                                $markerArray["###VAR_QUESTIONS_FALSE###"] = (($fetchedRow['fids']) ? (substr_count($fetchedRow['fids'],',')+1) : 0);
+	                            }
+	                            $markerArray["###VAR_CATEGORY###"] = $this->catArray[$row['lastcat']]['name'];
+	                            $markerArray["###VAR_NEXT_CATEGORY###"] = $this->catArray[$row['nextcat']]['name'];
+	                            $elapseTime = time() - $firsttime;
+	                        }
+	                        if ($skipped && $quizData['cmd']  != 'submit') {
+	                            $whereSkipped = ' AND uid NOT IN ('.preg_replace('/[^0-9,]/','',$skipped).')';    // exclude skipped questions next time
+	                        }
+	                    }
+	                    if ($cookieRead) $secondVisit = true;  // es wurde erfolgreich ein cookie gelesen
+	                }
+	                $GLOBALS['TYPO3_DB']->sql_free_result($res5);
+	            } else if ($quizData['qtuid']) {
+	                // load solved poll question from voting-table
+	                $uid = intval($quizData['qtuid']);
+	                $res5 = $GLOBALS['TYPO3_DB']->exec_SELECTquery('question_id',
+	                    $this->tableAnswers,
+	                    'uid='.$uid.' AND sys_language_uid='.$this->lang);
+	                if ($GLOBALS['TYPO3_DB']->sql_num_rows($res5)>0) {
+	                    $fetchedRow = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res5);
+	                    $answeredQuestions = $fetchedRow['question_id'];
+	                    if ($cookieRead) $secondVisit = true;
+	                }
+	                $GLOBALS['TYPO3_DB']->sql_free_result($res5);
+	            } else if ($this->conf['quizTimeMinutes'] && $quizData["time"]) {
+	                $elapseTime = time() - intval($quizData["time"]);        // before saving data
+	            }
+	            if ($quizData['qtuid'] && $this->conf["isPoll"] && $this->conf["secondPollMode"]==1) {
+	                $quizData['cmd'] = 'list';
+	                if ($this->helperObj->writeDevLog)
+	                    t3lib_div::devLog("changing to list mode", $this->extKey, 0);
+	            }
+	            if ($this->helperObj->writeDevLog)
+	                t3lib_div::devLog("old data loaded: $answeredQuestions / $whereAnswered / $whereSkipped", $this->extKey, 0);
+	        }
         }
-        
-        // check for second entry ( based on the fe_users-id )
-        if ( $this->conf['loggedInMode'] && ($quizData['cmd']!='score' && $quizData['cmd']!='list') && !$quizData['qtuid'] && $GLOBALS['TSFE']->loginUser && $this->tableAnswers=='tx_myquizpoll_result' && $no_rights == 0 ) {
-            $fe_uid = intval($GLOBALS['TSFE']->fe_user->user['uid']);
-            $res5 = $GLOBALS['TYPO3_DB']->exec_SELECTquery( 'uid, tstamp',
-                $this->tableAnswers,
-                'pid='.$resPID." AND fe_uid=$fe_uid AND sys_language_uid=".$this->lang,
-                //.' '.$this->cObj->enableFields($this->tableAnswers), auskommentiert am 7.11.10
-                '',
-                'tstamp DESC',
-                '1');
-            $rows = $GLOBALS['TYPO3_DB']->sql_num_rows($res5);
-            if ($rows>0) {                            // DB entry found for current user?
-                $fetchedRow = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res5);
-                if ( $this->conf['doubleCheckMode'] || $this->conf['secondPollMode'] ) {
-                    $quizData['qtuid'] = intval($fetchedRow['uid']);
-                    $quizData['cmd']  = 'next';
-                    $secondVisit = true;
-                } else {
-                    $no_rights = 1;                        // user is (b)locked now
-                    $markerArray["###DOUBLE_ENTRY###"] = $this->pi_getLL('double_entry','double_entry');
-                    $template = $this->cObj->getSubpart($this->templateCode, "###TEMPLATE_QUIZ_DOUBLE_ENTRY###");
-                    $content .= $this->cObj->substituteMarkerArray($template, $markerArray);         // Sonderfall !!!
-                }
-                $GLOBALS['TYPO3_DB']->sql_free_result($res5);
-            }
-            if ($this->helperObj->writeDevLog)
-                t3lib_div::devLog('fe_users check for qtuid='.$quizData['qtuid'], $this->extKey, 0);
-        }
-        
-        // check if the captcha is OK
-        if ((($quizData['cmd']  == 'submit' && $this->helperObj->getAskAtQ($quizData['qtuid'])) ||
-             ($quizData["fromStart"] && $this->conf['userData.']['askAtStart']) ||
-             ($quizData["fromFinal"] && $this->conf['userData.']['askAtFinal'])) &&
-                is_object($this->freeCap) && $this->conf['enableCaptcha'] &&
-                !$this->freeCap->checkWord($quizData['captcha_response']) && $no_rights == 0) {
-            if ($quizData["fromStart"] && $startPID!=$GLOBALS["TSFE"]->id) {    // Weiterleitung zurueck zur Extra-Startseite
-                $this->redirectUrl($startPID, array($this->prefixId.'[name]' => $quizData["name"],$this->prefixId.'[email]' => $quizData["email"],$this->prefixId.'[homepage]' => $quizData["homepage"], $this->prefixId.'[captchaError]' => '1'));
-                break;    // hier kommt man eh nie hin...
-            }
-            if ($quizData["fromFinal"] && $finalPID!=$GLOBALS["TSFE"]->id) {    // Weiterleitung zurueck zur Extra-Endseite
-                $this->redirectUrl($finalPID, array($this->prefixId.'[qtuid]' => intval($quizData["qtuid"]),$this->prefixId.'[cmd]' => 'next',$this->prefixId.'[name]' => $quizData["name"],$this->prefixId.'[email]' => $quizData["email"],$this->prefixId.'[homepage]' => $quizData["homepage"], $this->prefixId.'[captchaError]' => '1'));
-                break;    // hier kommt man eh nie hin...
-            }
-            $quizData['cmd']  = ($quizData["fromStart"]) ? '' : 'next';        // "nochmal" simulieren
-            //$quizData['qtuid'] = '';        // wieso wohl???
-            $markerArray["###CAPTCHA_NOT_OK###"] = $this->pi_getLL('captcha_not_ok','captcha_not_ok');
-            $template = $this->cObj->getSubpart($this->templateCode, "###TEMPLATE_CAPTCHA_NOT_OK###");
-            $markerArrayP["###REF_ERRORS###"] .= $this->cObj->substituteMarkerArray($template, $markerArray);    // instead of $content
-            //if ($quizData["fromStart"]) 
-            $quizData["fromStart"] = 0;            // nichts wurde getan simulieren
-            $quizData["fromFinal"] = 0;
-            if ($this->helperObj->writeDevLog)
-                t3lib_div::devLog('captcha check 1 not ok.', $this->extKey, 0);
-            $error=true;
-            $captchaError = true;
-        } else if ($quizData["captchaError"]) {
-            $markerArray["###CAPTCHA_NOT_OK###"] = $this->pi_getLL('captcha_not_ok','captcha_not_ok');
-            $template = $this->cObj->getSubpart($this->templateCode, "###TEMPLATE_CAPTCHA_NOT_OK###");
-            $markerArrayP["###REF_ERRORS###"] .= $this->cObj->substituteMarkerArray($template, $markerArray);    // instead of $content
-            if ($this->helperObj->writeDevLog)
-                t3lib_div::devLog('captcha check 2 not ok.', $this->extKey, 0);
-            $error=true;
-            $captchaError = true;
-        }
-        
-        // check if used IP is blocked
-        if ($quizData['cmd'] == 'submit' && $this->conf['blockIP']) {
-            $ips = explode(',', $this->conf['blockIP']);
-            foreach ($ips as $aip) {
-                $len = strlen(trim($aip));
-                if (substr($quiz_taker_ip_address,0,$len) == trim($aip)) {
-                    //$markerArray["###IP_BLOCKED###"] = $this->pi_getLL('ip_blocked','ip_blocked');
-                    //$template = $this->cObj->getSubpart($this->templateCode, "###TEMPLATE_IP_BLOCKED###");
-                    $markerArrayP["###REF_ERRORS###"] .= 'Your IP is blocked!'; //$this->cObj->substituteMarkerArray($template, $markerArray);
-                    if ($this->helperObj->writeDevLog)
-                        t3lib_div::devLog('IP '.$quiz_taker_ip_address.' blocked!', $this->extKey, 0);
-                    $error=true;
-                    $no_rights = 1;
-                }
-            }
-        }
-        
-        // read quiz takers old data
-        $answeredQuestions = '';     // prev. answered Question(s)
-        $skipped = '';
-        $cids = '';
-        $fids = '';
-        if ((($this->conf['useCookiesInDays'] && !$quizData['qtuid']) || 
-             ($quizData['cmd']  == 'next') ||
-             ($quizData['cmd']  == 'submit' && !$this->conf['isPoll'] && ($this->conf['dontShowPoints']!=1 || $this->conf['quizTimeMinutes']))) && $no_rights == 0 ) {
-             
-            $cookieRead = false;
-            if (!$quizData['qtuid'] && $this->conf['useCookiesInDays']) {   // !($quizData['cmd']  == 'next' || $quizData['cmd']  == 'submit')) warum das nur? auskommentiert am 27.12.2009
-                $cookieName = $this->getCookieMode($resPID, $thePID);
-                if ($this->conf['allowCookieReset'] && $quizData["resetcookie"]) {
-                    setcookie ($cookieName, "", time() - 3600);
-                    if ($this->helperObj->writeDevLog)
-                        t3lib_div::devLog('Cookie reseted: '.$cookieName, $this->extKey, 0);
-                } else {
-                    $quizData['qtuid'] = intval($_COOKIE[$cookieName]);    // read quiz taker UID from a cookie
-                     $cookieRead = true;
-                    if ($this->helperObj->writeDevLog)
-                        t3lib_div::devLog('Cookie read: '.$cookieName.'='.$quizData['qtuid'], $this->extKey, 0);
-                    // oder? $HTTP_COOKIE_VARS["myquizpoll".$resPID];    oder?  $GLOBALS["TSFE"]->fe_user->getKey("ses","myquizpoll".$resPID);
-                }
-            }
-            
-            if ($quizData['qtuid'] && $this->tableAnswers=='tx_myquizpoll_result') {
-                // load solved questions and quiz takers name, email, homepage, old points and last time
-                $uid = intval($quizData['qtuid']);
-                $res5 = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
-                    'name, email, homepage, qids,sids,cids,fids, p_or_a, p_max, percent, o_max, o_percent, firsttime, joker1,joker2,joker3, lastcat,nextcat',
-                    $this->tableAnswers,
-                    'uid='.$uid.' AND sys_language_uid='.$this->lang); //.' '.$this->cObj->enableFields($this->tableAnswers), auskommentiert am 7.11.10
-                $rows = $GLOBALS['TYPO3_DB']->sql_num_rows($res5);
-                if ($rows>0) {                            // DB entry found for current user?
-                    $fetchedRow = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res5);
-                    $answeredQuestions = $fetchedRow['qids'];
-                    if (!$this->conf["isPoll"]) {
-                        $skipped = $fetchedRow['sids'];
-                        $joker1 = $fetchedRow['joker1'];
-                        $joker2 = $fetchedRow['joker2'];
-                        $joker3 = $fetchedRow['joker3'];
-                        $firsttime = intval($fetchedRow['firsttime']);
-                        $this->helperObj->setFirstTime($uid, $firsttime);
-                        if ($answeredQuestions) {    // 2.9.10: beantwortete poll-frage muss man auch speichern???
-                            if ($fetchedRow['nextcat']) {
-                                $nextCat = $fetchedRow['nextcat'];
-                                if ($this->conf['startCategory']) $this->conf['startCategory'] = $nextCat;    // kategorie der naechsten frage...
-                            }
-                            if ($quizData['cmd']  != 'submit') {            // namen nicht ueberschreiben
-                                $whereAnswered = ' AND uid NOT IN ('.preg_replace('/[^0-9,]/','',$answeredQuestions).')';    // exclude answered questions next time
-                                if (!($quizData["name"] || $quizData["email"] || $quizData["homepage"])) {
-                                    $quizData["name"] = $fetchedRow['name'];    // abgesendete daten nicht mit default-werten ueberschreiben!
-                                    $quizData["email"] = $fetchedRow['email'];
-                                    $quizData["homepage"] = $fetchedRow['homepage'];
-                                }
-                                //$markerArray["###VAR_ADDRESS_UID###"] = $quizData["address_uid"] = $fetchedRow['address_uid'];
-                            }
-                            $markerArray["###VAR_TOTAL_POINTS###"] = intval($fetchedRow['p_or_a']);        // save total points for the case there are no more questions
-                            $markerArray["###VAR_TMAX_POINTS###"] = intval($fetchedRow['p_max']);
-                            $markerArray["###VAR_TMISSING_POINTS###"] = intval($fetchedRow['p_max']) - intval($fetchedRow['p_or_a']);
-                            $markerArray["###VAR_PERCENT###"] = intval($fetchedRow['percent']);
-                            $markerArray["###VAR_OMAX_POINTS###"] = intval($fetchedRow['o_max']);
-                            $markerArray["###VAR_OVERALL_PERCENT###"] = intval($fetchedRow['o_percent']);
-                            $markerArray["###VAR_QUESTIONS_ANSWERED###"] = (($fetchedRow['qids']) ? (substr_count($fetchedRow['qids'],',')+1) : 0);
-                            if ($fetchedRow['cids'] || $fetchedRow['fids']) {    // if weglassen?
-                                $markerArray["###VAR_QUESTIONS_CORRECT###"] = (($fetchedRow['cids']) ? (substr_count($fetchedRow['cids'],',')+1) : 0);
-                                $markerArray["###VAR_QUESTIONS_FALSE###"] = (($fetchedRow['fids']) ? (substr_count($fetchedRow['fids'],',')+1) : 0);
-                            }
-                            $markerArray["###VAR_CATEGORY###"] = $this->catArray[$row['lastcat']]['name'];
-                            $markerArray["###VAR_NEXT_CATEGORY###"] = $this->catArray[$row['nextcat']]['name'];
-                            $elapseTime = time() - $firsttime;
-                        }
-                        if ($skipped && $quizData['cmd']  != 'submit') {
-                            $whereSkipped = ' AND uid NOT IN ('.preg_replace('/[^0-9,]/','',$skipped).')';    // exclude skipped questions next time
-                        }
-                    }
-                    if ($cookieRead) $secondVisit = true;  // es wurde erfolgreich ein cookie gelesen
-                }
-                $GLOBALS['TYPO3_DB']->sql_free_result($res5);
-            } else if ($quizData['qtuid']) {
-                // load solved poll question from voting-table
-                $uid = intval($quizData['qtuid']);
-                $res5 = $GLOBALS['TYPO3_DB']->exec_SELECTquery('question_id',
-                    $this->tableAnswers,
-                    'uid='.$uid.' AND sys_language_uid='.$this->lang);
-                if ($GLOBALS['TYPO3_DB']->sql_num_rows($res5)>0) {
-                    $fetchedRow = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res5);
-                    $answeredQuestions = $fetchedRow['question_id'];
-                    if ($cookieRead) $secondVisit = true;
-                }
-                $GLOBALS['TYPO3_DB']->sql_free_result($res5);
-            } else if ($this->conf['quizTimeMinutes'] && $quizData["time"]) {
-                $elapseTime = time() - intval($quizData["time"]);        // before saving data
-            }
-            if ($quizData['qtuid'] && $this->conf["isPoll"] && $this->conf["secondPollMode"]==1) {
-                $quizData['cmd'] = 'list';
-                if ($this->helperObj->writeDevLog)
-                    t3lib_div::devLog("changing to list mode", $this->extKey, 0);
-            }
-            if ($this->helperObj->writeDevLog)
-                t3lib_div::devLog("old data loaded: $answeredQuestions / $whereAnswered / $whereSkipped", $this->extKey, 0);
-         }
         
         $markerArrayP["###QTUID###"] = intval($quizData['qtuid']);
         
@@ -573,7 +576,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
         }
         
         
-        if( $quizData['cmd'] == 'submit' && $no_rights == 0 ) {   /* ***************************************************** */
+        if( $quizData['cmd'] == 'submit' && !$this->conf['ignoreSubmit'] && $no_rights == 0 ) {   /* ***************************************************** */
             /*
              * Display result page: answers and points
              */
@@ -3467,6 +3470,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
         $this->setFlexValue('','answerChoiceMax', 'sDEF', 1);
         
         $this->setFlexValue('','sortBy', 'sNEXT', 3);
+        $this->setFlexValue('','pollStart', 'sNEXT', 1);
         $this->setFlexValue('','mixAnswers', 'sNEXT', 0);
         $this->setFlexValue('','showAnswersSeparate', 'sNEXT', 0);
         $this->setFlexValue('','dontShowCorrectAnswers', 'sNEXT', 0);
@@ -3561,6 +3565,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
         $this->setFlexValue('','startCategory', 'sFEATURES', 1);
         $this->setFlexValue('','onlyCategories', 'sFEATURES', 2);
         $this->setFlexValue('','randomCategories', 'sFEATURES', 0);
+        $this->setFlexValue('','ignoreSubmit', 'sFEATURES', 0);
         $this->setFlexValue('','useJokers', 'sFEATURES', 0);
         $value = $this->pi_getFFvalue($this->cObj->data['pi_flexform'], 'jokersUnlimited', 'sFEATURES');
         if ($value!='TS' && ($value || $value==='0' || $value===0))

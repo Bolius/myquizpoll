@@ -35,6 +35,7 @@
       <label index="flexform.sheets.subtleties.sortBy.uid">uid</label>
       <label index="flexform.sheets.subtleties.sortBy.title">Title</label>
       <label index="flexform.sheets.subtleties.sortBy.random">Random</label>
+      <label index="flexform.sheets.subtleties.pollStart">In poll mode: take which question on a poll result page?</label>
       <label index="flexform.sheets.subtleties.mixAnswers">Mix selectable answers?</label>
       <label index="flexform.sheets.subtleties.mixAnswers.ts">Use TS-value "mixAnswers"</label>
       <label index="flexform.sheets.subtleties.showAnswersSeparate">Show questions and solutions separate?</label>
@@ -237,6 +238,8 @@
       <label index="flexform.sheets.features.onlyCategories">OR categories of all questions:</label>
       <label index="flexform.sheets.features.randomCategories">Try to show at every page questions with different categories?</label>
       <label index="flexform.sheets.features.randomCategories.ts">Use TS-value "randomCategories"</label>
+      <label index="flexform.sheets.features.ignoreSubmit">Ignore user submits?</label>
+      <label index="flexform.sheets.features.ignoreSubmit.ts">Use TS-value "ignoreSubmit"</label>
     </languageKey>
     <languageKey index="de" type="array">
       <label index="flexform.sheets.general.title">Allgemeines</label>
@@ -268,6 +271,7 @@
       <label index="flexform.sheets.subtleties.sortBy.uid">uid</label>
       <label index="flexform.sheets.subtleties.sortBy.title">Titel</label>
       <label index="flexform.sheets.subtleties.sortBy.random">Zufall</label>
+      <label index="flexform.sheets.subtleties.pollStart">Im Umfrage-Modus: nimm welche Frage auf der Ergebnis-Seite?</label>
       <label index="flexform.sheets.subtleties.mixAnswers">Mische auswählbare Antworten nach dem Zufallsprinzip?</label>
       <label index="flexform.sheets.subtleties.mixAnswers.ts">Nimm TS-Wert "mixAnswers"</label>
       <label index="flexform.sheets.subtleties.showAnswersSeparate">Fragen und Lösungen separat anzeigen?</label>
@@ -470,6 +474,8 @@
       <label index="flexform.sheets.features.onlyCategories">ODER zeige nur Fragen mit diesen Kategorien:</label>
       <label index="flexform.sheets.features.randomCategories">Versuche bei jeder Frage pro Seite eine andere Kategorie zu nehmen?</label>
       <label index="flexform.sheets.features.randomCategories.ts">Nimm TS-Wert "randomCategories"</label>
+      <label index="flexform.sheets.features.ignoreSubmit">Ignoriere abgesendete Formulare?</label>
+      <label index="flexform.sheets.features.ignoreSubmit.ts">Nimm TS-Wert "ignoreSubmit"</label>
     </languageKey>
     <languageKey index="fr" type="array">
       <label index="flexform.sheets.general.title">Général</label>
@@ -501,6 +507,7 @@
       <label index="flexform.sheets.subtleties.sortBy.uid">uid</label>
       <label index="flexform.sheets.subtleties.sortBy.title">Titre</label>
       <label index="flexform.sheets.subtleties.sortBy.random">Aléatoire</label>
+      <label index="flexform.sheets.subtleties.pollStart">In poll mode: take which question on a poll result page?</label>
       <label index="flexform.sheets.subtleties.mixAnswers">Réponses mix sélectionnables au hasard?</label>
       <label index="flexform.sheets.subtleties.mixAnswers.ts">Prendre Valeur TS "mixAnswers"</label>
       <label index="flexform.sheets.subtleties.showAnswersSeparate">Les questions et les solutions carte séparément?</label>
@@ -703,6 +710,8 @@
       <label index="flexform.sheets.features.onlyCategories">Ou des catégories de toutes les questions:</label>
       <label index="flexform.sheets.features.randomCategories">Essayez de montrer à chaque page avec des questions différentes catégories?</label>
       <label index="flexform.sheets.features.randomCategories.ts">Prendre Valeur TS "randomCategories"</label>
+      <label index="flexform.sheets.features.ignoreSubmit">Ignore user submits?</label>
+      <label index="flexform.sheets.features.ignoreSubmit.ts">Use TS-value "ignoreSubmit"</label>
     </languageKey>
 	<languageKey index="dk" type="array">
 	</languageKey>
@@ -738,6 +747,7 @@
       <label index="flexform.sheets.subtleties.sortBy.uid">uid</label>
       <label index="flexform.sheets.subtleties.sortBy.title">Titolo</label>
       <label index="flexform.sheets.subtleties.sortBy.random">Possibilità</label>
+      <label index="flexform.sheets.subtleties.pollStart">In poll mode: take which question on a poll result page?</label>
       <label index="flexform.sheets.subtleties.mixAnswers">Mescolare risposte selezionabile a caso?</label>
       <label index="flexform.sheets.subtleties.mixAnswers.ts">Prendere TS-valore "mixAnswers"</label>
 	  <label index="flexform.sheets.subtleties.showAnswersSeparate">Domande e soluzioni separatamente?</label>
@@ -940,6 +950,8 @@
       <label index="flexform.sheets.features.onlyCategories">O delle categorie di tutte le questioni:</label>
       <label index="flexform.sheets.features.randomCategories">Cercare di mostrare a tutti i quesiti pagina con diverse categorie?</label>
       <label index="flexform.sheets.features.randomCategories.ts">Prendere TS-valore "randomCategories"</label>
+      <label index="flexform.sheets.features.ignoreSubmit">Ignore user submits?</label>
+      <label index="flexform.sheets.features.ignoreSubmit.ts">Use TS-value "ignoreSubmit"</label>
 	</languageKey>
 	<languageKey index="es" type="array">
       <label index="flexform.sheets.general.title">General</label>
@@ -971,6 +983,7 @@
       <label index="flexform.sheets.subtleties.sortBy.uid">uid</label>
       <label index="flexform.sheets.subtleties.sortBy.title">Título</label>
       <label index="flexform.sheets.subtleties.sortBy.random">Oportunidad</label>
+      <label index="flexform.sheets.subtleties.pollStart">In poll mode: take which question on a poll result page?</label>
       <label index="flexform.sheets.subtleties.mixAnswers">Mezclar seleccionable respuestas al azar?</label>
       <label index="flexform.sheets.subtleties.mixAnswers.ts">Tome TS-valor "mixAnswers"</label>
 	  <label index="flexform.sheets.subtleties.showAnswersSeparate">Preguntas y soluciones por separado?</label>
@@ -1173,6 +1186,8 @@
       <label index="flexform.sheets.features.onlyCategories">O categorías de todas las preguntas:</label>
       <label index="flexform.sheets.features.randomCategories">Trate de mostrar en cada página de preguntas con diferentes categorías?</label>
       <label index="flexform.sheets.features.randomCategories.ts">Tome TS-valor "randomCategories"</label>
+      <label index="flexform.sheets.features.ignoreSubmit">Ignore user submits?</label>
+      <label index="flexform.sheets.features.ignoreSubmit.ts">Use TS-value "ignoreSubmit"</label>
 	</languageKey>
 	<languageKey index="nl" type="array">
 	</languageKey>
@@ -1222,6 +1237,7 @@
       <label index="flexform.sheets.subtleties.sortBy.uid">uid</label>
       <label index="flexform.sheets.subtleties.sortBy.title">Titlu</label>
       <label index="flexform.sheets.subtleties.sortBy.random">Şansă</label>
+      <label index="flexform.sheets.subtleties.pollStart">In poll mode: take which question on a poll result page?</label>
       <label index="flexform.sheets.subtleties.mixAnswers">Se amestecă selectabile răspunsuri la întâmplare?</label>
       <label index="flexform.sheets.subtleties.mixAnswers.ts">Ia TS-valoarea "mixAnswers"</label>
 	  <label index="flexform.sheets.subtleties.showAnswersSeparate">Întrebări şi soluţii separat?</label>
@@ -1424,6 +1440,8 @@
       <label index="flexform.sheets.features.onlyCategories">Sau categorii de toate întrebările:</label>
       <label index="flexform.sheets.features.randomCategories">Încercaţi să arate, la fiecare pagina de întrebări cu diferite categorii?</label>
       <label index="flexform.sheets.features.randomCategories.ts">Ia TS-valoarea "randomCategories"</label>
+      <label index="flexform.sheets.features.ignoreSubmit">Ignore user submits?</label>
+      <label index="flexform.sheets.features.ignoreSubmit.ts">Use TS-value "ignoreSubmit"</label>
 	</languageKey>
     </data>
 </T3locallang>

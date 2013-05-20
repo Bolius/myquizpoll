@@ -201,6 +201,9 @@ plugin.tx_myquizpoll_pi1 {
 	# Enable Captcha field? (Requirement: sr_freecap Captcha Extension): 0: no; 1: yes; 2: yes, but only at/after the extra-start-page
 	enableCaptcha = 0
 
+	# Ignore a user submit? 0: no; 1: yes. Useful, if you want to display a fix poll result
+	ignoreSubmit = 0
+	
 	# Maximal answers per question selectable. Default value: 5 (0 = 5 too). Integer value. If > 5, than you have to change the database too!
 	answerChoiceMax = 6
 
