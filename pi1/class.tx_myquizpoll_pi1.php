@@ -2450,7 +2450,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
                 if ($template == '')    // if it is not in the template
                     $template = $this->cObj->getSubpart($this->origTemplateCode, "###TEMPLATE_ADMIN_EMAIL###");
                 $mailcontent = $this->cObj->substituteMarkerArray($template, $markerArrayP);
-                $this->helperObj->sendEmail($mailcontent,$this->pi_getLL('email_text','email_text'),$this->conf['email.']['admin_mail'],$this->conf['email.']['admin_name'],$this->conf['email.']['admin_subject']);
+                $this->helperObj->sendEmail($mailcontent,'',$this->conf['email.']['admin_mail'],$this->conf['email.']['admin_name'],$this->conf['email.']['admin_subject']);
             }
             if ($this->conf['email.']['send_user'] && t3lib_div::validEmail($quizData["email"]) && $this->conf['email.']['user_subject']) {
                 if ($this->helperObj->writeDevLog)    t3lib_div::devLog('Sending email to user: '.$quizData["email"], $this->extKey, 0);
@@ -2459,7 +2459,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
                 if ($template == '')    // if it is not in the template
                     $template = $this->cObj->getSubpart($this->origTemplateCode, "###TEMPLATE_USER_EMAIL###");
                 $mailcontent = $this->cObj->substituteMarkerArray($template, $markerArrayP);
-                $this->helperObj->sendEmail($mailcontent,$this->pi_getLL('email_text','email_text'),$quizData["email"],$quizData["name"],$this->conf['email.']['user_subject']);
+                $this->helperObj->sendEmail($mailcontent,'',$quizData["email"],$quizData["name"],$this->conf['email.']['user_subject']);
             }
         }
         

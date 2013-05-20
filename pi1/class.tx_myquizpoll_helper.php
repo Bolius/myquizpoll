@@ -429,11 +429,77 @@ class tx_myquizpoll_helper {
 		return $foreign_id;
 	}
 	
+	/**
+	 * Function makePlain() removes html tags and add linebreaks
+	 * 		Easy generate a plain email bodytext from a html bodytext
+	 *
+	 * @param	string		$content: HTML Mail bodytext
+	 * @return	string		$content: Plain Mail bodytext
+	 */
+	private function makePlain($content) {
+		// config
+		$htmltagarray = array ( // This tags will be added with linebreaks
+			'</p>',
+			'</tr>',
+			'</li>',
+			'</h1>',
+			'</h2>',
+			'</h3>',
+			'</h4>',
+			'</h5>',
+			'</h6>',
+			'</div>',
+			'</legend>',
+			'</fieldset>',
+			'</dd>',
+			'</dt>'
+		);
+		$notallowed = array ( // This array contains not allowed signs which will be removed
+			'&nbsp;',
+			'&szlig;',
+			'&Uuml;',
+			'&uuml;',
+			'&Ouml;',
+			'&ouml;',
+			'&Auml;',
+			'&auml;',
+		);
+
+		// let's go
+		$content = nl2br($content);
+		$content = str_replace($htmltagarray, $htmltagarray[0] . '<br />', $content); // 1. add linebreaks on some parts (</p> => </p><br />)
+		$content = strip_tags($content, '<br><address>'); // 2. remove all tags but not linebreaks and address (<b>bla</b><br /> => bla<br />)
+		$content = preg_replace('/\s+/', ' ', $content); // 3. removes tabs and whitespaces
+		$content = $this->br2nl($content); // 4. <br /> to \n
+		$content = implode("\n", t3lib_div::trimExplode("\n", $content)); // 5. explode and trim each line and implode again (" bla \n blabla " => "bla\nbla")
+		$content = str_replace($notallowed, '', $content); // 6. remove not allowed signs
+
+		return $content;
+	}
+
+	/**
+	 * Function br2nl is the opposite of nl2br
+	 *
+	 * @param	string		$content: Anystring
+	 * @return	string		$content: Manipulated string
+	 */
+	private function br2nl($content) {
+		$array = array(
+			'<br >',
+			'<br>',
+			'<br/>',
+			'<br />'
+		);
+		$content = str_replace($array, "\n", $content); // replacer
+
+		return $content;
+	}
+	
   /**
     * Send email to...
 	*
 	* @param	string	$html_content: html-content
-	* @param	string	$text_content: text-content
+	* @param	string	$text_content: text-content. wird nicht mehr benutzt.
 	* @param	string	$to_mail: email
 	* @param	string	$to_name: name
 	* @param	string	$to_subject: subject
@@ -447,7 +513,7 @@ class tx_myquizpoll_helper {
 			  ->setTo(array($to_mail => $to_name))
 			  ->setSubject($to_subject)
 			  ->setBody($html_content, 'text/html')
-			  ->addPart($text_content, 'text/plain')
+			  ->addPart($this->makePlain($html_content), 'text/plain')
 			  ->send();
 		} else {
 			require_once(PATH_t3lib.'class.t3lib_htmlmail.php');		
@@ -460,7 +526,7 @@ class tx_myquizpoll_helper {
 			$htmlMail->from_name = $this->settings['email.']['from_name'];
 			$htmlMail->returnPath = $this->settings['email.']['from_mail'];
 			$htmlMail->subject = $to_subject;
-			$htmlMail->addPlain($text_content);
+			$htmlMail->addPlain($this->makePlain($html_content));
 			$htmlMail->setHTML($htmlMail->encodeMsg($html_content));
 			$htmlMail->send($to_mail);
 		}
