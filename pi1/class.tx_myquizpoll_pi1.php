@@ -267,7 +267,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
         // enable dev logging if set
         if (TYPO3_DLOG || $this->conf['debug']) {
             $this->helperObj->writeDevLog = TRUE;
-            t3lib_div::devLog('Language: '.$this->lang.'; use cookies: '.$this->conf['useCookiesInDays'].'; path to template: '.$tempPath, $this->extKey, 0);
+            t3lib_div::devLog('UID: '.$this->cObj->data['uid'].'; language: '.$this->lang.'; use cookies: '.$this->conf['useCookiesInDays'].'; use ip-check: '.$this->conf['doubleEntryCheck'].'; path to template: '.$tempPath, $this->extKey, 0);
         }
         
         // set some session-variables
@@ -328,6 +328,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 	            if ($rows>0) {                            // DB entry found for current user?
 	                $fetchedRow = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res5);
 	                $dateOld = $fetchedRow['tstamp'];
+					if ($this->helperObj->writeDevLog) t3lib_div::devLog('Entry found for IP '.$quiz_taker_ip_address.': '.$fetchedRow['uid'], $this->extKey, 0);
 	                $period = intval($this->conf['doubleEntryCheck']);    // seconds
 	                if ($period < 10000) $period *= 60*60*24;        // days
 	                //if ($period==1) $period = 50000;        // approx. a half day is the quiz blocked for the same ip-address
@@ -342,7 +343,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 	                        $template = $this->cObj->getSubpart($this->templateCode, "###TEMPLATE_QUIZ_DOUBLE_ENTRY###");
 	                        $content .= $this->cObj->substituteMarkerArray($template, $markerArray);         // Sonderfall !!!
 	                        if ($this->helperObj->writeDevLog)
-	                            t3lib_div::devLog('User is blocked (ip-check).', $this->extKey, 0);
+	                            t3lib_div::devLog('User is blocked (ip-check), because doubleCheckMode='.$this->conf['doubleCheckMode'].', secondPollMode='.$this->conf['secondPollMode'], $this->extKey, 0);
 	                    }
 	                }
 	                $GLOBALS['TYPO3_DB']->sql_free_result($res5);

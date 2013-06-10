@@ -252,8 +252,9 @@ class  tx_myquizpoll_module1 extends t3lib_SCbase {
 		if (!$ep) $ep=10;
 		$pointer = intval(t3lib_div::_GP('pointer'));
 		$path = t3lib_extMgm::extRelPath("myquizpoll").'mod1/';
+		$path_abs = t3lib_div::getIndpEnv('TYPO3_DOCUMENT_ROOT').'/'.t3lib_extMgm::siteRelPath("myquizpoll").'mod1/';
 		$filename_new = t3lib_div::getIndpEnv('TYPO3_DOCUMENT_ROOT').'/uploads/tx_myquizpoll/style.css';	// statt $_SERVER["DOCUMENT_ROOT"]
-		$filename_old = $path.'style.css';
+		$filename_old = $path_abs.'style.css';
 		$head = '';
 		$content = '';
 		$questions='';
@@ -1183,7 +1184,7 @@ class  tx_myquizpoll_module1 extends t3lib_SCbase {
 					}
 					$content .= "</textarea><br /><br />\n";
 					fclose ($datei);
-				}
+				} else $content .= '<p>Error: can not find file: '.$filename.'<br /></p>';
 				$content .= '<input type="submit" name="save" value="'.$LANG->getLL('save_styles').'" />';
 			  } else $content .= '<div align="center"><strong>Only for Admins!!!</strong></div><br />';
 			break;
