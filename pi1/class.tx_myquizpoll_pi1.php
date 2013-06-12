@@ -84,6 +84,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
         $error = false;                // was there an error?
         $nextCat = '';                // global next category
         $catArray = array();        // array with category names
+        $oldLoaded = false;			// old data loaded
         
         // global $TSFE;
         $this->lang = intval($GLOBALS['TSFE']->config['config']['sys_language_uid']);         
@@ -336,7 +337,10 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 	                    if ( $this->conf['doubleCheckMode'] || $this->conf['secondPollMode'] ) {
 	                        $quizData['qtuid'] = intval($fetchedRow['uid']);
 	                        $quizData['cmd']  = 'next';
+	                        $quizData['secondVisit']  = 1;
 	                        $secondVisit = true;
+	                        if ($this->helperObj->writeDevLog)
+	                            t3lib_div::devLog('IP-check: cmd to next changed, because doubleCheckMode='.$this->conf['doubleCheckMode'].', secondPollMode='.$this->conf['secondPollMode'], $this->extKey, 0);
 	                    } else {
 	                        $no_rights = 1;                        // user is (b)locked now
 	                        $markerArray["###DOUBLE_ENTRY###"] = $this->pi_getLL('double_entry','double_entry');
@@ -347,6 +351,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 	                    }
 	                }
 	                $GLOBALS['TYPO3_DB']->sql_free_result($res5);
+	                //$oldLoaded = true;
 	            }
 	            if ($this->helperObj->writeDevLog)
 	                t3lib_div::devLog('IP check for qtuid='.$quizData['qtuid'], $this->extKey, 0);
@@ -376,6 +381,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 	                    $content .= $this->cObj->substituteMarkerArray($template, $markerArray);         // Sonderfall !!!
 	                }
 	                $GLOBALS['TYPO3_DB']->sql_free_result($res5);
+	                //$oldLoaded = true;
 	            }
 	            if ($this->helperObj->writeDevLog)
 	                t3lib_div::devLog('fe_users check for qtuid='.$quizData['qtuid'], $this->extKey, 0);
@@ -452,7 +458,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 	                        t3lib_div::devLog('Cookie reseted: '.$cookieName, $this->extKey, 0);
 	                } else {
 	                    $quizData['qtuid'] = intval($_COOKIE[$cookieName]);    // read quiz taker UID from a cookie
-	                     $cookieRead = true;
+	                    $cookieRead = true;
 	                    if ($this->helperObj->writeDevLog)
 	                        t3lib_div::devLog('Cookie read: '.$cookieName.'='.$quizData['qtuid'], $this->extKey, 0);
 	                    // oder? $HTTP_COOKIE_VARS["myquizpoll".$resPID];    oder?  $GLOBALS["TSFE"]->fe_user->getKey("ses","myquizpoll".$resPID);
@@ -533,8 +539,9 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 	                if ($this->helperObj->writeDevLog)
 	                    t3lib_div::devLog("changing to list mode", $this->extKey, 0);
 	            }
+	            if ($quizData['qtuid']) $oldLoaded = true;
 	            if ($this->helperObj->writeDevLog)
-	                t3lib_div::devLog("old data loaded: $answeredQuestions / $whereAnswered / $whereSkipped", $this->extKey, 0);
+	                t3lib_div::devLog("Old data loaded with uid $uid: $answeredQuestions / $whereAnswered / $whereSkipped", $this->extKey, 0);
 	        }
         }
         
@@ -1419,7 +1426,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
         $markerArray["###VISIBILITY###"] = $this->pi_getLL('visibility','visibility');
         
         // UID loeschen bei Umfragen
-        if ($this->conf['isPoll']) {
+        if ($this->conf['isPoll']) {	// warum nur?
             $quizData['qtuid'] = '';
         }
         
@@ -2054,6 +2061,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
             
                 // final page: no more questions left, if pageQuestions > 0
                 if ($this->helperObj->writeDevLog)    t3lib_div::devLog('0 questions found. Entering final page...', $this->extKey, 0);
+                if ($oldLoaded) $secondVisit = true;	// Keine Email schicken, wenn alle Fragen schon beantwortet wurden
                 $template = $this->cObj->getSubpart($this->templateCode, "###TEMPLATE_NO_MORE###");
                 $markerArray["###NO_MORE###"] = $this->pi_getLL('no_more','no_more');
                 $markerArray['###YOUR_EVALUATION###'] = $this->pi_getLL('your_evaluation','your_evaluation');
@@ -2089,7 +2097,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
                     $quizData['cmd'] = 'score';
                 }
                 $finalPage = true;
-            
+            	
             }
             
             // myVars for page
@@ -2285,7 +2293,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
         $uidC = 0;        // content UID
         if ($finalPage && $quizData['cmd'] != 'exit') {  // nicht noetig: && !$this->conf['isPoll']) {
         
-            if (($this->conf['showAnalysis'] || $this->conf['showEvaluation']) && !$this->conf['dontShowPoints']) {    // Analysis depends on points
+           	if (($this->conf['showAnalysis'] || $this->conf['showEvaluation']) && !$this->conf['dontShowPoints']) {    // Analysis depends on points
                 if ($this->helperObj->writeDevLog)    t3lib_div::devLog('Displaying Analysis: '.$this->conf['showAnalysis'].' or Evaluation: '.$this->conf['showEvaluation'], $this->extKey, 0);
                 if (!$markerArray["###VAR_TMAX_POINTS###"]) {
                     $this->helperObj->setQuestionsVars();
@@ -3155,7 +3163,8 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
         $hits=0;
         $percent=0;
         $withStartCat=false;
-
+		//var_dump($quizData);
+		
         if ($this->tableAnswers=='tx_myquizpoll_result') {
             $dbanswer = 'p_or_a';
             $dbquestion = 'qids';
@@ -3187,6 +3196,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
         $markerArrayS=array();
         $markerArray["###PREFIX###"] = $this->prefixId;
         $markerArray["###REF_POLLRESULT_ENTRY###"] = '';
+        $markerArray["###SECOND_VISIT###"] = ($quizData['secondVisit']) ? $this->pi_getLL('second_visit','second_visit') : '';
         $markerArray["###ANSWER###"] = $this->pi_getLL('answer','answer');
         $markerArray["###VOTES###"] = $this->pi_getLL('votes','votes');
         $markerArray["###VAR_RESPID###"] = $resPID;
@@ -3226,8 +3236,8 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
             $markerArray["###REF_QR_EXPLANATION###"] = '';
         }
         $markerArray["###VAR_QUESTION_NAME###"] = $this->formatStr($row['name']); // $this->pi_RTEcssText($row['name']);
-        if ($withStartCat) {    // nur antworten zur frage einer kategorie nehmen
-            $answeredQ = " AND $dbquestion=".$row['uid'];
+        if ($withStartCat && $row['uid']) {    // nur antworten zur frage einer kategorie nehmen
+            $answeredQ = " AND $dbquestion=".intval($row['uid']);
         }
         if ($row['image']) {
             $template_image_begin = $this->cObj->getSubpart($this->templateCode, "###TEMPLATE_QUESTION_IMAGE_BEGIN###");
@@ -3243,8 +3253,8 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 
         // votes
         //************ HOTFIX von S. Rotheneder: only current question *************
-        if(!$answeredQ || $answeredQ=='')
-            $answeredQ = " AND $dbquestion = ".$row['uid'];
+        if((!$answeredQ || $answeredQ=='') && $row['uid'])
+            $answeredQ = " AND $dbquestion = ".intval($row['uid']);
         //************ HOTFIX *************
         $res2 = $GLOBALS['TYPO3_DB']->exec_SELECTquery("count($dbanswer) AS anzahl, $dbanswer",
                 $this->tableAnswers,

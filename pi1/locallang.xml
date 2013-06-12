@@ -73,7 +73,8 @@
 			<label index="submit">Submit</label>
 			<label index="reset">Reset</label>
 			<label index="missing_answer">please choose one answer or enter something!</label>
-			<label index="no_submit">You have voted allready!</label>
+			<label index="no_submit">You have voted already!</label>
+			<label index="second_visit">You have voted already! Here is now the poll result.</label>
 			<label index="yes">yes</label>
 			<label index="no">no</label>
 			<label index="highscore_caption">Top</label>
@@ -157,6 +158,7 @@
 			<label index="reset">Zurücksetzen</label>
 			<label index="missing_answer">bitte eine Antwort auswählen oder etwas eingeben!</label>
 			<label index="no_submit">Du hast schon an dieser Umfrage teilgenommen!</label>
+			<label index="second_visit">Du hast schon an dieser Umfrage teilgenommen! Hier das Umfrage-Ergebnis:</label>
 			<label index="yes">ja</label>
 			<label index="no">nein</label>
 			<label index="highscore_caption">Top</label>
@@ -240,6 +242,7 @@
 			<label index="reset">Effacer</label>
 			<label index="missing_answer">S\'il vous plaît choisir une seule réponse ou saisissez quelque chose!</label>
 			<label index="no_submit">Vous avez déjà voté !</label>
+			<label index="second_visit">You have voted already! Here is now the poll result.</label>
 			<label index="yes">oui</label>
 			<label index="no">non</label>
 			<label index="highscore_caption">Top</label>
@@ -327,6 +330,7 @@
 			<label index="reset">Reset</label>
 			<label index="missing_answer">si prega di scegliere una risposta o inserire qualcosa!</label>
 			<label index="no_submit">Lei ha già partecipato a questo sondaggio!</label>
+			<label index="second_visit">You have voted already! Here is now the poll result.</label>
 			<label index="yes">sì</label>
 			<label index="no">no</label>
 			<label index="highscore_caption">Top</label>
@@ -405,6 +409,7 @@
 			<label index="reset">Reajustar</label>
 			<label index="missing_answer">por favor, elija una respuesta, o escribir algo!</label>
 			<label index="no_submit">Usted ya ha participado en esta encuesta!</label>
+			<label index="second_visit">You have voted already! Here is now the poll result.</label>
 			<label index="yes">sì</label>
 			<label index="no">no</label>
 			<label index="highscore_caption">Top</label>
@@ -501,6 +506,7 @@
 			<label index="reset">Resetare</label>
 			<label index="missing_answer">Va rugam sa alegeti un raspuns sau de a intra ceva!</label>
 			<label index="no_submit">Ati participat deja la acest sondaj!</label>
+			<label index="second_visit">You have voted already! Here is now the poll result.</label>
 			<label index="yes">da</label>
 			<label index="no">nu</label>
 			<label index="highscore_caption">Top</label>
