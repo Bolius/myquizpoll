@@ -456,9 +456,9 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 	                    setcookie ($cookieName, "", time() - 3600);
 	                    if ($this->helperObj->writeDevLog)
 	                        t3lib_div::devLog('Cookie reseted: '.$cookieName, $this->extKey, 0);
-	                } else {
+	                } else if ($this->conf['useCookiesInDays']) {
 	                    $quizData['qtuid'] = intval($_COOKIE[$cookieName]);    // read quiz taker UID from a cookie
-	                    $cookieRead = true;
+	                    if ($quizData['qtuid']) $cookieRead = true;
 	                    if ($this->helperObj->writeDevLog)
 	                        t3lib_div::devLog('Cookie read: '.$cookieName.'='.$quizData['qtuid'], $this->extKey, 0);
 	                    // oder? $HTTP_COOKIE_VARS["myquizpoll".$resPID];    oder?  $GLOBALS["TSFE"]->fe_user->getKey("ses","myquizpoll".$resPID);
@@ -1014,7 +1014,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
                 if (!$this->conf['showAnswersSeparate'])
                     $quizData['cmd'] = '';                        // show more/next questions!
                 // Seek for old answered questions
-                if ($quizData['qtuid']) {                        // bei einfachen Umfragen sollte es die hier nicht geben
+                if ($quizData['qtuid'] && !$this->conf['isPoll']) {
                     $uid = intval($quizData['qtuid']);
                     $res5 = $GLOBALS['TYPO3_DB']->exec_SELECTquery('qids,cids,fids,sids, p_or_a, p_max, joker1,joker2,joker3',
                         $this->tableAnswers,
@@ -1062,7 +1062,8 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
                                 $error = true;
                                 $markerArray["###CHEATING###"] = $this->pi_getLL('cheating','cheating');
                                 $template = $this->cObj->getSubpart($this->templateCode, "###TEMPLATE_CHEATING###");
-                                $markerArrayP["###REF_RES_ERRORS###"] .= $this->cObj->substituteMarkerArray($template, $markerArray);    // instead $content
+                                $markerArrayP["###REF_RES_ERRORS###"] .= $this->cObj->substituteMarkerArray($template, $markerArray);
+                                if ($this->helperObj->writeDevLog)    t3lib_div::devLog("Cheating error!", $this->extKey, 0);
                                 /*$tempTime = $this->helperObj->getPageTime($quizData['qtuid']);
                                 if ($tempTime) {
                                     $markerArrayP["###VAR_NOW###"] = $markerArray["###VAR_NOW###"] = $tempTime;
@@ -1222,12 +1223,12 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
                     if ( $this->conf['useCookiesInDays'] ) {    // save quiz takers UID as cookie?
                         $cookieName = $this->getCookieMode($resPID, $thePID);
                         //if (!($this->conf['isPoll'] && $_COOKIE[$cookieName])) {    // bein Umfragen Cookie nicht ueberschreiben...
-                            if ($this->helperObj->writeDevLog)    t3lib_div::devLog('Storing Cookie: '.$cookieName.'='.$quizData['qtuid'], $this->extKey, 0);
                             if (intval($this->conf['useCookiesInDays'])==-1)
                                 $periode = 0;
                             else
                                 $periode = time()+(3600*24*intval($this->conf['useCookiesInDays']));
                             setcookie($cookieName, $quizData['qtuid'], $periode);  /* cookie for x days */
+                            if ($this->helperObj->writeDevLog)    t3lib_div::devLog('Storing Cookie: '.$cookieName.'='.$quizData['qtuid'].', period='.$periode, $this->extKey, 0);
                         //}
                     }
                     $this->helperObj->setFirstTime($quizData['qtuid'], $firsttime);
@@ -1425,10 +1426,13 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
         $markerArray["###HIDE_ME###"] = $this->pi_getLL('hide_me','hide_me');
         $markerArray["###VISIBILITY###"] = $this->pi_getLL('visibility','visibility');
         
+        // TODO: warum nur?
         // UID loeschen bei Umfragen
-        if ($this->conf['isPoll']) {	// warum nur?
+        if ($this->conf['isPoll']) {
             $quizData['qtuid'] = '';
         }
+        if ($this->helperObj->writeDevLog)
+        	t3lib_div::devLog('Next cmd: '.$quizData['cmd'].', answer-page: '.$answerPage.', final-page: '.$finalPage, $this->extKey, 0);
         
         
         if( $quizData['cmd'] == '' && $no_rights==0 ) {           /* ***************************************************** */
@@ -2247,6 +2251,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
                 $markerArrayP["###REF_QUIZ_LIMIT###"] = '';
             }
             
+            if ($this->helperObj->writeDevLog)    t3lib_div::devLog('Displaying result-page...', $this->extKey, 0);
             $template = $this->cObj->getSubpart($this->templateCode, "###TEMPLATE_RESULT_PAGE###");
             if ($template == '')    // if it is not in the (old custom) template
                 $template = $this->cObj->getSubpart($this->origTemplateCode, "###TEMPLATE_RESULT_PAGE###");
@@ -2428,7 +2433,6 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
             if (($this->conf['email.']['send_admin']==1) || ($this->conf['email.']['send_user']==1))
                 $sendMail = true;
         }
-        
         
         /** Send an/two email(s)? **/
         if ($sendMail && !$error && !$secondVisit) {
@@ -3163,7 +3167,6 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
         $hits=0;
         $percent=0;
         $withStartCat=false;
-		//var_dump($quizData);
 		
         if ($this->tableAnswers=='tx_myquizpoll_result') {
             $dbanswer = 'p_or_a';

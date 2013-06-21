@@ -143,8 +143,8 @@ function loadResults(data) {
   }
   //for (i=1; i<=qnr_sel; i++) window.alert('checked answer: '+data[i-1][OPT_TITLE]);	// debug
 
-  $(".###PREFIX###-submit").hide();
-  $(".###PREFIX###-reset").hide();
+  $(".###PREFIX###-subres").hide();
+  $(".###PREFIX###-jokers").hide();
   $("#quiz_response").hide();
 
   if (data[0][OPT_ID]==-1) {
@@ -289,9 +289,10 @@ If user results should be hidden, set hidden = 1. Example: see template_statisti
 
 
 <!-- ###TEMPLATE_SUBMIT### begin of "sumbit form (quiz or poll); used if TEMPLATE_QUIZ_USER_TO_SUBMIT is not used" -->
-<br />
+<div class="###PREFIX###-subres">
 <input type="submit" value="###SUBMIT###" class="###PREFIX###-submit" /> &nbsp;
 <input type="reset" value="###RESET###" class="###PREFIX###-reset" />
+</div>
 <!-- ###TEMPLATE_SUBMIT### end -->
 
 
@@ -329,7 +330,7 @@ If user results should be hidden, set hidden = 1. Example: see template_statisti
 
 
 <!-- ###TEMPLATE_JOKERS### begin of "Jokers for a question" since v.0.2.2 -->
-<p class="###PREFIX###-label">###USE_JOKERS###: 
+<p class="###PREFIX###-label ###PREFIX###-jokers">###USE_JOKERS###: 
  <span id="###PREFIX###-joker_50">- <a href="javascript:nix();" onclick="###JOKER_50_LINK###">###JOKER_50###</a></span>
  <span id="###PREFIX###-joker_phone">- <a href="javascript:nix();" onclick="###JOKER_PHONE_LINK###">###JOKER_PHONE###</a></span>
  <span id="###PREFIX###-joker_audience">- <a href="javascript:nix();" onclick="###JOKER_AUDIENCE_LINK###">###JOKER_AUDIENCE###</a></span></p>
