@@ -24,6 +24,7 @@ plugin.tx_myquizpoll_pi1 {
 	myVars.list.komma = ,|,|,|,|
 	answerChoiceMax = 5
 }
+plugin.tx_myquizpoll_pi1._LOCAL_LANG.de.poll_url = Zum aktuellen Umfrage-Ergebnis
 page.includeCSS {
   jqplot = fileadmin/template/jqplot/jquery.jqplot.min.css
 }
@@ -217,6 +218,15 @@ var plot1b = $.jqplot('chart1b', [line1], {
 	Insgesamt haben bisher ###VAR_VOTES### Leute ihre Stimme abgegeben.
 </div>
 <!-- ###TEMPLATE_POLLRESULT### end -->
+
+
+<p>You can use ###VAR_LINKTAG### too.</p>
+<!-- ###TEMPLATE_ARCHIVE### begin of "poll archive list" -->
+<p>Alte Umfragen:</p>
+<!-- ###TEMPLATE_ARCHIVE_ENTRY### begin -->
+<div class="###PREFIX###-archive-list-entry"><a href="###VAR_LINK###">###VAR_TITLE###</a></div>
+<!-- ###TEMPLATE_ARCHIVE_ENTRY### end -->
+<!-- ###TEMPLATE_ARCHIVE### end -->
 
 
 <p>Email to admin (if email.send_admin > 0):<br />

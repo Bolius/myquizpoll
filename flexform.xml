@@ -36,6 +36,10 @@
                             <numIndex index="0">LLL:EXT:myquizpoll/locallang_ff.xml:flexform.sheets.general.what_to_display.4</numIndex>
                             <numIndex index="1">list</numIndex>
                         </numIndex>
+                        <numIndex index="5" type="array">
+                            <numIndex index="0">LLL:EXT:myquizpoll/locallang_ff.xml:flexform.sheets.general.what_to_display.5</numIndex>
+                            <numIndex index="1">archive</numIndex>
+                        </numIndex>
                     </items>
                 </config>
             </TCEforms>

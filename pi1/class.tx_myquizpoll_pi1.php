@@ -124,6 +124,8 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
         //$this->local_cObj = t3lib_div::makeInstance("tslib_cObj");    // Local cObj
         
         // Get post parameters: Submited Quiz-data
+        if ($this->conf['CMD']=='archive')
+        	$this->conf['ignoreSubmit']=true;	// submits in diesen Fällen igonieren
         $quizData = array();
         if (is_array(t3lib_div::_GP($this->prefixId)) && !$this->conf['ignoreSubmit']) {
           if (is_array(t3lib_div::_POST($this->prefixId)))
@@ -270,11 +272,28 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
             $this->helperObj->writeDevLog = TRUE;
             t3lib_div::devLog('UID: '.$this->cObj->data['uid'].'; language: '.$this->lang.'; use cookies: '.$this->conf['useCookiesInDays'].'; use ip-check: '.$this->conf['doubleEntryCheck'].'; path to template: '.$tempPath, $this->extKey, 0);
         }
-        
+        	
         // set some session-variables
         if ((!$this->conf['isPoll']) && ($quizData['cmd']=='') && (!$quizData['qtuid']))
             $this->helperObj->setQuestionsVars();
         
+        // what to display?
+        switch ($quizData['cmd']) {
+        	case 'archive':
+        		if ($this->conf['isPoll']) {
+        			/* Display only a list of old polls	*/
+        			return $this->pi_wrapInBaseClass( $this->showPollArchive( $listPID,$thePID,$resPID ) );
+        		}
+        	case 'list':
+        		if (is_numeric($quizData['qid'])) {
+        			/* Display an old poll	*/
+        			return $this->pi_wrapInBaseClass( $this->showPollResult('', $quizData, $thePID,$resPID) );
+        		}
+        	// Andere Fälle später entscheiden
+        }
+        
+        
+            
         // get the startPID of a solved quiz
         if (!$startPID) $startPID = $this->helperObj->getStartUid($quizData['qtuid']);
         $quiz_name = $this->conf['quizName'];
@@ -2148,7 +2167,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
             if ($this->helperObj->writeDevLog)    t3lib_div::devLog("show answers of: $thePID,$resPID", $this->extKey, 0);
             $content .= $this->showAllAnswers( $quizData, $thePID,$resPID, false, 0 ); // 24.01.10: 0 statt $this->helperObj->getQuestionsNo()
         }
-        
+          
         
         if ( $quizData['cmd'] == 'score' && !$this->conf['isPoll'] ) {         /* ***************************************************** */
             /*
@@ -2541,7 +2560,6 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
 
     
     
-
     /**
      * show all answers
      *
@@ -3325,6 +3343,50 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
         $GLOBALS['TYPO3_DB']->sql_free_result($res2);
         return $out;
     }
+    
+    
+    /**
+     * show a poll archive
+     *
+     * @param    int        $listPID: uid of the poll result page
+     * @param    mixed    $thePID: uid of the folder(s) with the questions
+     * @param    int        $resPID: uid of the folder with user-results
+     * @return   string    The content that should be displayed on the website
+     */ 
+    function showPollArchive( $listPID,$thePID,$resPID ) {
+    	$template = $this->cObj->getSubpart($this->templateCode, "###TEMPLATE_ARCHIVE###");
+        $template_entry = $this->cObj->getSubpart($template, "###TEMPLATE_ARCHIVE_ENTRY###");
+        $markerArray = array();
+        $markerArrayS = array();
+        $markerArray["###REF_ARCHIVE_ENTRY###"] = '';
+        
+    	$queryResult = $GLOBALS['TYPO3_DB']->exec_SELECTquery('uid,title',
+			$this->tableQuestions,
+			'pid IN ('.$thePID.') AND sys_language_uid='.$this->lang.' '.$this->cObj->enableFields($this->tableQuestions),
+			'',
+			$this->getSortBy(), // 'tstamp DESC',
+			"1,100");
+		$rows = $GLOBALS['TYPO3_DB']->sql_num_rows($queryResult);
+		if ($this->helperObj->writeDevLog)
+			t3lib_div::devLog('Archive Poll result: selected questions with pid IN ('.$thePID.') AND sys_language_uid='.$this->lang.': '.$rows, $this->extKey, 0);
+		if ($rows>0) {
+			while($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($queryResult)){
+				$typolink_conf = array(
+	                'parameter' => intval($listPID),
+	                'additionalParams' => '&'.$this->prefixId.'[cmd]=list&'.$this->prefixId.'[qid]='.$row['uid'],
+	                'useCacheHash' => 0);
+	            $markerArrayS['###VAR_LINKTAG###'] = $this->cObj->typolink($row['title'], $typolink_conf);
+	            $markerArrayS['###VAR_LINK###'] = $this->pi_getPageLink($listPID, '', array($this->prefixId.'[qid]' => $row['uid'], $this->prefixId.'[cmd]' => 'list'));
+            	$markerArrayS['###VAR_TITLE###'] = $row['title'];
+				$markerArray["###REF_ARCHIVE_ENTRY###"] .= $this->cObj->substituteMarkerArray($template_entry, $markerArrayS);
+			}
+		}
+		$GLOBALS['TYPO3_DB']->sql_free_result($queryResult);
+		$subpart = $template;
+        $template = $this->cObj->substituteSubpart($subpart, '###TEMPLATE_ARCHIVE_ENTRY###', $markerArray["###REF_ARCHIVE_ENTRY###"], 0);
+        return $this->cObj->substituteMarkerArray($template, $markerArray);		
+    }
+    
     
     
     /**

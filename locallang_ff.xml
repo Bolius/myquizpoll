@@ -13,6 +13,7 @@
       <label index="flexform.sheets.general.what_to_display.2">Show all answers</label>
       <label index="flexform.sheets.general.what_to_display.3">Highscore list</label>
       <label index="flexform.sheets.general.what_to_display.4">Poll results</label>
+      <label index="flexform.sheets.general.what_to_display.5">Basic poll archive</label>
       <label index="flexform.sheets.general.isPoll">Quiz or basic poll?</label>
       <label index="flexform.sheets.general.isPoll.ts">Use TS-value "isPoll"</label>
       <label index="flexform.sheets.general.isPoll.no">Quiz / Poll</label>
@@ -249,6 +250,7 @@
       <label index="flexform.sheets.general.what_to_display.2">Lösungsseite</label>
       <label index="flexform.sheets.general.what_to_display.3">Highscore-Liste</label>
       <label index="flexform.sheets.general.what_to_display.4">Umfrage-Ergebnisse</label>
+      <label index="flexform.sheets.general.what_to_display.5">Einfaches Umfrage-Archiv</label>
       <label index="flexform.sheets.general.isPoll">Quiz oder Umfrage?</label>
       <label index="flexform.sheets.general.isPoll.ts">Nimm TS-Wert "isPoll"</label>
       <label index="flexform.sheets.general.isPoll.no">Quiz oder Umfrage</label>
@@ -485,6 +487,7 @@
       <label index="flexform.sheets.general.what_to_display.2">Solution à la page</label>
       <label index="flexform.sheets.general.what_to_display.3">Highscore List</label>
       <label index="flexform.sheets.general.what_to_display.4">Poll Results</label>
+      <label index="flexform.sheets.general.what_to_display.5">Basic poll archive</label>
       <label index="flexform.sheets.general.isPoll">Une Quiz ou un Survey?</label>
       <label index="flexform.sheets.general.isPoll.ts">Prendre Valeur TS "isPoll"</label>
       <label index="flexform.sheets.general.isPoll.no">Quiz ou un Sondage</label>
@@ -725,6 +728,7 @@
       <label index="flexform.sheets.general.what_to_display.2">Soluzione lato</label>
       <label index="flexform.sheets.general.what_to_display.3">Highscore lista</label>
       <label index="flexform.sheets.general.what_to_display.4">Risultati del sondaggio</label>
+      <label index="flexform.sheets.general.what_to_display.5">Basic poll archive</label>
       <label index="flexform.sheets.general.isPoll">Quiz o sondaggio?</label>
       <label index="flexform.sheets.general.isPoll.ts">Prendere TS-valore "isPoll"</label>
       <label index="flexform.sheets.general.isPoll.no">Quiz o sondaggi</label>
@@ -961,6 +965,7 @@
       <label index="flexform.sheets.general.what_to_display.2">Solución lado</label>
       <label index="flexform.sheets.general.what_to_display.3">Lista de los jugadores</label>
       <label index="flexform.sheets.general.what_to_display.4">Resultados de la encuesta</label>
+      <label index="flexform.sheets.general.what_to_display.5">Basic poll archive</label>
       <label index="flexform.sheets.general.isPoll">Quiz o encuesta?</label>
       <label index="flexform.sheets.general.isPoll.ts">Tome TS-valor "isPoll"</label>
       <label index="flexform.sheets.general.isPoll.no">Examen o cuestionario</label>
@@ -1215,6 +1220,7 @@
       <label index="flexform.sheets.general.what_to_display.2">Soluţie partea</label>
       <label index="flexform.sheets.general.what_to_display.3">Clasament lista</label>
       <label index="flexform.sheets.general.what_to_display.4">Rezultate sondaj</label>
+      <label index="flexform.sheets.general.what_to_display.5">Basic poll archive</label>
       <label index="flexform.sheets.general.isPoll">Test sau sondaj?</label>
       <label index="flexform.sheets.general.isPoll.ts">Ia TS-valoarea "isPoll"</label>
       <label index="flexform.sheets.general.isPoll.no">Test sau studiu</label>

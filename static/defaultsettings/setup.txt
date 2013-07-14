@@ -1,6 +1,9 @@
 # default setup for the extension myquizpoll:
 plugin.tx_myquizpoll_pi1 {
 
+    # mode: score, list, allanswers, archive or NORMAL
+    CMD =
+    
 	# Quiz or poll? 0: normal mode; 1: basic poll mode
 	isPoll = 0
 
