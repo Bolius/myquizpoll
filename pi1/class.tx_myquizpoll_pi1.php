@@ -2084,7 +2084,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
             
                 // final page: no more questions left, if pageQuestions > 0
                 if ($this->helperObj->writeDevLog)    t3lib_div::devLog('0 questions found. Entering final page...', $this->extKey, 0);
-                if ($oldLoaded) $secondVisit = true;	// Keine Email schicken, wenn alle Fragen schon beantwortet wurden
+                // if ($oldLoaded) $secondVisit = true;	// Keine Email schicken, wenn alle Fragen schon beantwortet wurden: NE, so einfach ist das nicht :-(
                 $template = $this->cObj->getSubpart($this->templateCode, "###TEMPLATE_NO_MORE###");
                 $markerArray["###NO_MORE###"] = $this->pi_getLL('no_more','no_more');
                 $markerArray['###YOUR_EVALUATION###'] = $this->pi_getLL('your_evaluation','your_evaluation');

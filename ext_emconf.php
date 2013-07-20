@@ -15,7 +15,7 @@ $EM_CONF[$_EXTKEY] = array(
 	'description' => 'An advanced quiz with a lot of features (e.g. highscore list, multi-page, multi-lingual, jokers) which can be used as a quiz, questionnaire, survey, poll, rating or psychological test',
 	'category' => 'plugin',
 	'shy' => 0,
-	'version' => '2.2.11',
+	'version' => '2.3.1',
 	'dependencies' => 'cms',
 	'conflicts' => '',
 	'priority' => '',
@@ -28,15 +28,15 @@ $EM_CONF[$_EXTKEY] = array(
 	'clearcacheonload' => 0,
 	'lockType' => '',
 	'author' => 'Kurt Gusbeth',
-	'author_email' => 'info@myquizandpoll.de',
+	'author_email' => 'info@quizpalme.de',
 	'author_company' => '',
 	'CGLcompliance' => '',
 	'CGLcompliance_note' => '',
 	'constraints' => array(
 		'depends' => array(
 			'cms' => '',
-			'php' => '5.0.0-0.0.0',
-			'typo3' => '4.3.0-0.0.0',
+			'php' => '5.0.0-5.5.99',
+			'typo3' => '4.3.0-6.2.99',
 		),
 		'conflicts' => array(
 		),
