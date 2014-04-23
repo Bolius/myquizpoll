@@ -22,7 +22,7 @@
 *  This copyright notice MUST APPEAR in all copies of the script!
 ***************************************************************/
 
-require_once(PATH_tslib.'class.tslib_pibase.php');
+// require_once(PATH_tslib.'class.tslib_pibase.php');
 require_once(t3lib_extMgm::extPath('myquizpoll').'pi1/class.tx_myquizpoll_helper.php'); // PATH_BE_myquizpoll
 
 /**
@@ -878,7 +878,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
                                     if ($row['qtype']==3) {        // since 0.1.8: falsche und richtige antwort ausgeben
                                         $tempAnswer = $this->cObj->substituteMarkerArray($template_oknot, $markerArray);
                                         $markerArray["###REF_QR_ANSWER_CORR_NOTANSW###"] .= $tempAnswer;
-                                        $markerArray["###VAR_QUESTION_ANSWER###"] = htmlspecialchars($quizData['answer'.$questionNumber]);                                        
+                                        $markerArray["###VAR_QUESTION_ANSWER###"] = htmlspecialchars($quizData['answer'.$questionNumber]);
                                     }
                                     $tempAnswer2 = $this->cObj->substituteMarkerArray($template_notok, $markerArray);
                                     $markerArray["###REF_QR_ANSWER_NOTCORR_ANSW###"] .= $tempAnswer2;
@@ -1228,7 +1228,7 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
                     $insert['lasttime'] = $timestamp;
                     $insert['lastcat'] = $lastCat;
                     $insert['nextcat'] = $nextCat;
-                    $insert['fe_uid'] = $GLOBALS['TSFE']->fe_user->user['uid'];
+                    $insert['fe_uid'] = intval($GLOBALS['TSFE']->fe_user->user['uid']);
                     $insert['start_uid'] = intval($quizData["start_uid"]);
                 } else {
                     $insert['answer_no'] = $points;
@@ -1784,8 +1784,8 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
                             $answers++;
                             $input_id = '';
                             $input_label1 = '';
-                            $input_label2 = '';
-                            
+                            $input_label2 = ''; 
+                            $id = '';
                             // my Variables for answers
                             $markerArrayQ["###MY_OPTION###"] = '';
                             $markerArrayQ["###MY_INPUT_RADIO###"] = '';
@@ -1802,7 +1802,6 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
                                 if ($row['qtype']!=2 && !(strpos($markerArrayQ["###MY_INPUT_WRAP###"],'|') === false))
                                     $answer_choice = str_replace('|',$answer_choice,$markerArrayQ["###MY_INPUT_WRAP###"]);
                             }
-                            
                             // Questtion type
                             if ($row['qtype'] == 1) {    // radio-button
                                 if ($markerArrayQ["###MY_INPUT_ID###"]) $input_id = 'id="answer'.$questionNumber.'_'.$answerNumber.'"';
@@ -1813,7 +1812,11 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
                                     $input_label1 = '<label for="answer'.$questionNumber.'_'.$answerNumber.'"'.$class_label.'>';
                                     $input_label2 = '</label>';
                                 }
-                                $answer_content = '<input type="radio" name="tx_myquizpoll_pi1[answer'.$questionNumber.']" value="'.$currentValue.'" '.$input_id.' ###MY_INPUT_RADIO###';
+                                $id = 'tx_myquizpoll_pi1[answer'.$questionNumber.'-'.$currentValue.']';
+                                $answer_content = '<input type="radio" 
+                                    name="tx_myquizpoll_pi1[answer'.$questionNumber.']" 
+                                    id="'.$id.'" 
+                                    value="'.$currentValue.'" ###MY_INPUT_RADIO###';
                                 if (is_array($oldRelData[$quid]) && $oldRelData[$quid]['checked'.$currentValue]) $answer_content .= ' checked="checked"';
 								elseif ($captchaError && $quizData['answer'.$questionNumber]==$currentValue) $answer_content .= ' checked="checked"';
                                 $answer_content .= ' /> ';
@@ -1924,16 +1927,24 @@ class tx_myquizpoll_pi1 extends tslib_pibase {
                             $thisCat = $row['category'.$currentValue];
                             if ($this->catArray[$thisCat]) $markerArrayQ['###VAR_QA_CATEGORY###'] = $this->catArray[$thisCat]['name'];
                             if ($row['qtype'] < 3) {
-                                if ($markerArrayQ["###MY_INPUT_LABEL###"] > 1)
+                                if ($markerArrayQ["###MY_INPUT_LABEL###"] > 1){
                                     $answer_content = $input_label1.$answer_content.$answer_choice.$input_label2;
-                                else
+                                } else {
+                                    $answer_only = $answer_content;
                                     $answer_content .= $input_label1.$answer_choice.$input_label2;
+                                }
                             }
                             if ($row['qtype'] == 2) {
                                 $answer_content .= "</option>\n";
                                 $markerArrayQ["###VAR_QUESTION_ANSWER###"] .= $this->cObj->substituteMarkerArray($answer_content, $markerArrayQ);
                             } else {
                                 $markerArrayQ['###VAR_QUESTION_ANSWER###'] = $this->cObj->substituteMarkerArray($answer_content, $markerArrayQ);
+                                $markerArrayQ['###VAR_QUESTION_ONLY###'] = $this->cObj->substituteMarkerArray($answer_only, $markerArrayQ);
+                                $markerArrayQ['###VAR_QUESTION_ID###'] = $this->cObj->substituteMarkerArray($id, $markerArrayQ);
+                                $markerArrayQ['###VAR_LABEL_ONLY###'] = $this->cObj->substituteMarkerArray($answer_choice, $markerArrayQ);
+
+                                // echo 13;
+
                                 $markerArray["###REF_QUESTION_ANSWER###"] .= $this->cObj->substituteMarkerArray($template_answer, $markerArrayQ);
                             }
                         }

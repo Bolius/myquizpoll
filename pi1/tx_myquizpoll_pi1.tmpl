@@ -164,7 +164,12 @@ And you can use ###VAR_QUESTION_IMAGE###, ###VAR_QUESTION###, ###VAR_QUESTIONS##
 <div class="###PREFIX###-title###TITLE_HIDE###">###VAR_QUESTION_TITLE###</div>
 <div class="###PREFIX###-question">###VAR_QUESTION_NAME### ###P1######VAR_ANSWER_POINTS######P2###</div>
 <!-- ###TEMPLATE_QUESTION_ANSWER### begin of "an answer" -->
-<div class="###PREFIX###-answer">###VAR_QUESTION_ANSWER###</div>
+<div class="###PREFIX###-answer">
+  <div>
+    ###VAR_QUESTION_ONLY###
+    <label for="###VAR_QUESTION_ID###">###VAR_LABEL_ONLY###</label>
+  </div>
+</div>
 <!-- ###TEMPLATE_QUESTION_ANSWER### end -->
 ###REF_QUESTION_IMAGE_END###
 ###REF_DELIMITER###
